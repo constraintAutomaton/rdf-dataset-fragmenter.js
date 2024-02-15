@@ -18,14 +18,15 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
 
     private resourceHandled: Set<string> = new Set();
 
-    private readonly shapeTreeFileName: string = "shapetree.nq";
 
-    static rdfTypeNode = DF.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
-    static shapeTreeNode = DF.namedNode("http://www.w3.org/ns/shapetrees#ShapeTree");
-    static shapeTreeShapeNode = DF.namedNode("http://www.w3.org/ns/shapetrees#shape");
-    static shapeTreeLocator = DF.namedNode('http://www.w3.org/ns/shapetrees#ShapeTreeLocator');
-    static solidInstance = DF.namedNode("http://www.w3.org/ns/solid/terms#instance");
-    static solidInstanceContainer = DF.namedNode("http://www.w3.org/ns/solid/terms#instanceContainer");
+    static readonly rdfTypeNode = DF.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
+    static readonly shapeTreeNode = DF.namedNode("http://www.w3.org/ns/shapetrees#ShapeTree");
+    static readonly shapeTreeShapeNode = DF.namedNode("http://www.w3.org/ns/shapetrees#shape");
+    static readonly shapeTreeLocator = DF.namedNode('http://www.w3.org/ns/shapetrees#ShapeTreeLocator');
+    static readonly solidInstance = DF.namedNode("http://www.w3.org/ns/solid/terms#instance");
+    static readonly solidInstanceContainer = DF.namedNode("http://www.w3.org/ns/solid/terms#instanceContainer");
+    static readonly shapeTreeFileName: string = "shapetree.nq";
+
 
     public constructor(shapeFolder: string, relativePath?: string, tripleShapeTreeLocator?: boolean) {
         super();
@@ -51,35 +52,38 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
                 // we are in the case where the resource is not in the root of the pod
                 const positionContainerResourceNotInRoot = iri.indexOf(`/${resourceIndex}/`);
                 if (positionContainerResourceNotInRoot !== -1) {
-                    this.generateShapeIndexInformation(quadSink, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath);
+                    FragmentationStrategyShape.generateShapeIndexInformation(quadSink, this.resourceHandled, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath, this.tripleShapeTreeLocator);
                     return;
                 }
 
                 // we are in the case where the ressource is at the root of the pod
                 const positionContainerResourceInRoot = iri.indexOf(resourceIndex);
                 if (positionContainerResourceInRoot !== -1) {
-                    this.generateShapeIndexInformation(quadSink, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath);
+                    FragmentationStrategyShape.generateShapeIndexInformation(quadSink, this.resourceHandled, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath, this.tripleShapeTreeLocator);
                     return;
                 }
             }
         }
     }
 
-    private generateShapeIndexInformation(quadSink: IQuadSink,
+    static generateShapeIndexInformation(quadSink: IQuadSink,
+        resourceHandled: Set<string>,
         iri: string,
         positionContainer: number,
         resourceIndex: string,
-        shapePath: string) {
+        shapePath: string,
+        tripleShapeTreeLocator?: boolean
+    ) {
         const podIRI = iri.substring(0, positionContainer);
-        const shapeTreeIRI = `${podIRI}/${this.shapeTreeFileName}`;
+        const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
         const shapeIRI = `${podIRI}/${resourceIndex}_shape.nq`;
 
-        if (this.tripleShapeTreeLocator) {
+        if (tripleShapeTreeLocator === true) {
             FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri);
         }
         FragmentationStrategyShape.generateShape(quadSink, shapeIRI, shapePath);
         FragmentationStrategyShape.generateShapetreeTriples(quadSink, shapeTreeIRI, shapeIRI, true, iri);
-        this.resourceHandled.add(iri);
+        resourceHandled.add(iri);
     }
 
     static generateShapeTreeLocator(quadSink: IQuadSink, podIRI: string, shapeTreeIRI: string, iri: string) {
@@ -118,7 +122,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
         const shapeShexc = (await readFile(shapePath)).toString();
         const shapeJSONLD = shexParser.parse(shapeShexc);
         const stringShapeJsonLD = JSON.stringify(shapeJSONLD);
-        
+
         return new Promise((resolve, reject) => {
             // stringigy streams
             const jsonldParser = new JsonLdParser();
