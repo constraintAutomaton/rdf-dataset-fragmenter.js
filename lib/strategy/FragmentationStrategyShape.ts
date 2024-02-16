@@ -39,8 +39,8 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
         const shapeMap: Map<string, string> = new Map();
         const config = JSON.parse(readFileSync(join(shapeFolder, 'config.json')).toString());
         const shapes = config["shapes"];
-        for (const [dataType, shape] of Object.entries(shapes)) {
-            shapeMap.set(dataType, <string>shape);
+        for (const [dataType, shapeEntry] of Object.entries(shapes)) {
+            shapeMap.set(dataType, <string>shapeEntry);
         }
         return shapeMap;
     }
@@ -52,21 +52,21 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
                 // we are in the case where the resource is not in the root of the pod
                 const positionContainerResourceNotInRoot = iri.indexOf(`/${resourceIndex}/`);
                 if (positionContainerResourceNotInRoot !== -1) {
-                    FragmentationStrategyShape.generateShapeIndexInformation(quadSink, this.resourceHandled, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath, this.tripleShapeTreeLocator);
+                    await FragmentationStrategyShape.generateShapeIndexInformation(quadSink, this.resourceHandled, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath, this.tripleShapeTreeLocator);
                     return;
                 }
 
                 // we are in the case where the ressource is at the root of the pod
                 const positionContainerResourceInRoot = iri.indexOf(resourceIndex);
                 if (positionContainerResourceInRoot !== -1) {
-                    FragmentationStrategyShape.generateShapeIndexInformation(quadSink, this.resourceHandled, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath, this.tripleShapeTreeLocator);
+                    await FragmentationStrategyShape.generateShapeIndexInformation(quadSink, this.resourceHandled, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath, this.tripleShapeTreeLocator);
                     return;
                 }
             }
         }
     }
 
-    static generateShapeIndexInformation(quadSink: IQuadSink,
+    static async generateShapeIndexInformation(quadSink: IQuadSink,
         resourceHandled: Set<string>,
         iri: string,
         positionContainer: number,
@@ -78,24 +78,26 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
         const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
         const shapeIRI = `${podIRI}/${resourceIndex}_shape.nq`;
 
+        const promises: Promise<void>[] = [];
         if (tripleShapeTreeLocator === true) {
-            FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri);
+            promises.push(FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri))
         }
-        FragmentationStrategyShape.generateShape(quadSink, shapeIRI, shapePath);
-        FragmentationStrategyShape.generateShapetreeTriples(quadSink, shapeTreeIRI, shapeIRI, true, iri);
+        promises.push(FragmentationStrategyShape.generateShape(quadSink, shapeIRI, shapePath));
+        promises.push(FragmentationStrategyShape.generateShapetreeTriples(quadSink, shapeTreeIRI, shapeIRI, true, iri));
+        await Promise.all(promises);
         resourceHandled.add(iri);
     }
 
-    static generateShapeTreeLocator(quadSink: IQuadSink, podIRI: string, shapeTreeIRI: string, iri: string) {
+    static async generateShapeTreeLocator(quadSink: IQuadSink, podIRI: string, shapeTreeIRI: string, iri: string) {
         const shapeTreeIndicator = DF.quad(
             DF.namedNode(podIRI),
             this.shapeTreeLocator,
             DF.namedNode(shapeTreeIRI)
         );
-        quadSink.push(iri, shapeTreeIndicator);
+        await quadSink.push(iri, shapeTreeIndicator);
     }
 
-    static generateShapetreeTriples(quadSink: IQuadSink, shapeTreeIRI: string, shapeIRI: string, isNotInRootOfPod: boolean, contentIri: string) {
+    static async generateShapetreeTriples(quadSink: IQuadSink, shapeTreeIRI: string, shapeIRI: string, isNotInRootOfPod: boolean, contentIri: string) {
         const blankNode = DF.blankNode();
         const type = DF.quad(
             blankNode,
@@ -112,24 +114,40 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
             isNotInRootOfPod ? this.solidInstance : this.solidInstanceContainer,
             DF.namedNode(contentIri)
         );
-        quadSink.push(shapeTreeIRI, type);
-        quadSink.push(shapeTreeIRI, shape);
-        quadSink.push(shapeTreeIRI, target);
+        await Promise.all(
+            [
+                quadSink.push(shapeTreeIRI, type),
+                quadSink.push(shapeTreeIRI, shape),
+                quadSink.push(shapeTreeIRI, target),
+            ]
+        );
+
     }
 
     static async generateShape(quadSink: IQuadSink, shapeIRI: string, shapePath: string): Promise<void> {
         const shexParser = ShexParser.construct(shapeIRI);
         const shapeShexc = (await readFile(shapePath)).toString();
         const shapeJSONLD = shexParser.parse(shapeShexc);
+        // the jsonLD is not valid without the context field and the library doesn't include it
+        // because a ShExJ MAY contain a @context field
+        // https://shex.io/shex-semantics/#shexj
+        shapeJSONLD["@context"] = "http://www.w3.org/ns/shex.jsonld";
         const stringShapeJsonLD = JSON.stringify(shapeJSONLD);
 
         return new Promise((resolve, reject) => {
             // stringigy streams
+            const promises: Promise<void>[] = [];
             const jsonldParser = new JsonLdParser();
             jsonldParser
-                .on('data', (quad: RDF.Quad) => { quadSink.push(shapeIRI, quad) })
-                .on('error', (error: any) => { reject(error) })
-                .on('end', () => resolve());
+                .on('data', async (quad: RDF.Quad) => { promises.push(quadSink.push(shapeIRI, quad)) })
+                // we ignore this because it is difficult to provide a valid Shex document that 
+                // would not be parsable in RDF when it has been in ShExJ
+                .on('error', (error: any) => { /* istanbul ignore next */ reject(error) })
+                .on('end', async () => {
+                    await Promise.all(promises);
+                    resolve()
+                });
+
             jsonldParser.write(stringShapeJsonLD);
             jsonldParser.end();
 
