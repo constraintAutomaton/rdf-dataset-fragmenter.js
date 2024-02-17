@@ -20,7 +20,6 @@ export class FragmentationStrategySubject extends FragmentationStrategyStreamAda
   protected async handleQuad(quad: RDF.Quad, quadSink: IQuadSink): Promise<void> {
     // Only accept IRI subjects.
     if (quad.subject.termType === 'NamedNode') {
-      
       await quadSink.push(FragmentationStrategySubject.generateIri(quad, this.relativePath), quad);
 
       // Save the subject in our blank node buffer, as it may be needed to identify documents for other quads.
@@ -30,7 +29,7 @@ export class FragmentationStrategySubject extends FragmentationStrategyStreamAda
     await this.blankNodeBuffer.push(quad, quadSink);
   }
 
-  static generateIri(quad: RDF.Quad, relativePath?:string) {
+  public static generateIri(quad: RDF.Quad, relativePath?: string): string {
     // If the subject is a named node, add the quad to the subject's document.
     const baseIri = quad.subject.value.endsWith('/') ? quad.subject.value : `${quad.subject.value}/`;
     return relativePath ? resolve(relativePath, baseIri) : quad.subject.value;
