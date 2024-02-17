@@ -1,4 +1,3 @@
-import { Readable } from 'stream';
 import * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import { FragmentationStrategyShape } from '../../../lib/strategy/FragmentationStrategyShape';
@@ -157,25 +156,27 @@ describe('FragmentationStrategySubject', () => {
         const positionContainer = 53;
         const resourceIndex = "posts";
         const shapePath = "bar";
-
-        let spyGenerateShapetreeTriples: any;
-        let spyGenerateShape:any;
-        let spyGenerateShapeTreeLocator:any;
+       
+        let originalImplementationGenerateShapetreeTriples = FragmentationStrategyShape.generateShapetreeTriples;
+        let originalImplementationGenerateShape = FragmentationStrategyShape.generateShape;
+        let originalImplementationGenerateShapeTreeLocator = FragmentationStrategyShape.generateShapeTreeLocator;
 
         beforeEach(() => {
             resourceHandled = new Set();
             sink = {
                 push: jest.fn(),
             };
-            spyGenerateShapetreeTriples = jest.spyOn(FragmentationStrategyShape, 'generateShapetreeTriples');
-            spyGenerateShape = jest.spyOn(FragmentationStrategyShape, 'generateShape');
-            spyGenerateShapeTreeLocator = jest.spyOn(FragmentationStrategyShape, 'generateShapeTreeLocator');
+            FragmentationStrategyShape.generateShapetreeTriples = jest.fn();
+            FragmentationStrategyShape.generateShape = jest.fn();
+            FragmentationStrategyShape.generateShapeTreeLocator = jest.fn();
+
         });
 
         afterAll(() => {
-            (<jest.Mock>FragmentationStrategyShape.generateShapetreeTriples).mockRestore();
-            (<jest.Mock>FragmentationStrategyShape.generateShape).mockRestore();
-            (<jest.Mock>FragmentationStrategyShape.generateShapeTreeLocator).mockRestore();
+
+            FragmentationStrategyShape.generateShapetreeTriples = originalImplementationGenerateShapetreeTriples;
+            FragmentationStrategyShape.generateShape = originalImplementationGenerateShape;
+            FragmentationStrategyShape.generateShapeTreeLocator = originalImplementationGenerateShapeTreeLocator;
         });
 
         // https://stackoverflow.com/questions/50421732/mocking-up-static-methods-in-jest
@@ -188,9 +189,9 @@ describe('FragmentationStrategySubject', () => {
                 shapePath,
                 false
             );
-            expect(spyGenerateShapeTreeLocator).toHaveBeenCalledTimes(0);
-            expect(spyGenerateShape).toHaveBeenCalledTimes(1);
-            expect(spyGenerateShapetreeTriples).toHaveBeenCalledTimes(1);
+            expect(FragmentationStrategyShape.generateShapeTreeLocator).toHaveBeenCalledTimes(0);
+            expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
+            expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
             expect(resourceHandled.size).toBe(1);
             expect(resourceHandled.has(iri)).toBe(true);
         });
@@ -267,7 +268,7 @@ describe('FragmentationStrategySubject', () => {
             expect(sink.push).not.toHaveBeenCalled();
         });
 
-        it('should handle a quad that is not bounded by a shape', async () => {
+        it('should handle a quad not bounded by a shape', async () => {
             const quads = [
                 DF.quad(
                     DF.blankNode(),
@@ -279,7 +280,7 @@ describe('FragmentationStrategySubject', () => {
             expect(sink.push).not.toHaveBeenCalled();
         });
 
-        it('should handle a quad that is bounded by a shape', async () => {
+        it('should handle a quad bounded by a shape', async () => {
             const quads = [
                 DF.quad(
                     DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562"),
@@ -290,6 +291,37 @@ describe('FragmentationStrategySubject', () => {
             await strategy.fragment(streamifyArray([...quads]), sink);
             expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
         });
-    });
 
+        it('should handle one subject when the quad subject is inside a container in the root of a pod', async () => {
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562"),
+                    DF.namedNode("boo"),
+                    DF.namedNode("cook")
+                )
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+        });
+
+        it('should handle a quad bounded by shape when tripleShapeTreeLocator is false', async ()=>{
+            strategy = new FragmentationStrategyShape(shapeFolder, relativePath, false);
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                )
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes(81 + 3);
+        });
+    });
+   
 });
