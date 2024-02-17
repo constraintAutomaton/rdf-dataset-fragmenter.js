@@ -17,6 +17,9 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     private readonly shapeMap: Map<string, string>;
 
     private resourceHandled: Set<string> = new Set();
+    // this filter is for the case where all the resources are inside one file
+    // in that case we want the shape and the index to target all the subject inside the file and not generate one file by subject
+    private singleFileContainerHandled: Set<string> = new Set();
 
 
     static readonly rdfTypeNode = DF.namedNode("http://www.w3.org/1999/02/22-rdf-syntax-ns#type");
@@ -52,14 +55,29 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
                 // we are in the case where the resource is not in the root of the pod
                 const positionContainerResourceNotInRoot = iri.indexOf(`/${resourceIndex}/`);
                 if (positionContainerResourceNotInRoot !== -1) {
-                    await FragmentationStrategyShape.generateShapeIndexInformation(quadSink, this.resourceHandled, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath, this.tripleShapeTreeLocator);
+                    await FragmentationStrategyShape.generateShapeIndexInformation(quadSink,
+                        this.resourceHandled,
+                        iri,
+                        positionContainerResourceNotInRoot - 1,
+                        resourceIndex,
+                        shapePath,
+                        this.tripleShapeTreeLocator);
                     return;
                 }
 
                 // we are in the case where the ressource is at the root of the pod
                 const positionContainerResourceInRoot = iri.indexOf(resourceIndex);
-                if (positionContainerResourceInRoot !== -1) {
-                    await FragmentationStrategyShape.generateShapeIndexInformation(quadSink, this.resourceHandled, iri, positionContainerResourceNotInRoot - 1, resourceIndex, shapePath, this.tripleShapeTreeLocator);
+                const resourceInOneFileId = `${iri.substring(0, positionContainerResourceInRoot-1)}/${resourceIndex}`;
+                // we check if the resouce is in the root of the pod and we check if the file has been handled 
+                if (positionContainerResourceInRoot !== -1 && !this.singleFileContainerHandled.has(resourceInOneFileId)) {
+                    await FragmentationStrategyShape.generateShapeIndexInformation(quadSink,
+                        this.resourceHandled,
+                        iri,
+                        positionContainerResourceInRoot - 1,
+                        resourceIndex,
+                        shapePath,
+                        this.tripleShapeTreeLocator);
+                    this.singleFileContainerHandled.add(resourceInOneFileId);
                     return;
                 }
             }
@@ -142,7 +160,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
                 .on('data', async (quad: RDF.Quad) => { promises.push(quadSink.push(shapeIRI, quad)) })
                 // we ignore this because it is difficult to provide a valid Shex document that 
                 // would not be parsable in RDF when it has been in ShExJ
-                .on('error', (error: any) => { /* istanbul ignore next */ reject(error) })
+                .on('error', /* istanbul ignore next */ (error: any) => { reject(error) })
                 .on('end', async () => {
                     await Promise.all(promises);
                     resolve()

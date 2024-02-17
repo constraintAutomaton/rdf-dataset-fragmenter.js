@@ -51,7 +51,7 @@ describe('FragmentationStrategySubject', () => {
             expect(sink.push).toHaveBeenCalledTimes(81);
         });
 
-        it('should throw given that the shape is not valid', async () => {
+        it('should reject the promise given that the shape is not valid', async () => {
             (<jest.Mock>readFile).mockReturnValueOnce(
                 new Promise((resolve) => {
                     resolve({
@@ -96,7 +96,7 @@ describe('FragmentationStrategySubject', () => {
             };
         });
 
-        it('should add into the sink the quad related to the type, the shape and the target and interprete correctly that the data is inside a container in the pod', () => {
+        it('should add into the sink the quad related to the type, the shape and the target and interpret correctly that the data is inside a container a pod', () => {
             const isNotInRootOfPod = false;
             FragmentationStrategyShape.generateShapetreeTriples(sink, shapeTreeIRI, shapeIRI, isNotInRootOfPod, contentIri);
 
@@ -110,7 +110,7 @@ describe('FragmentationStrategySubject', () => {
             expect((<RDF.Quad>calls[2][1]).predicate).toStrictEqual(FragmentationStrategyShape.solidInstanceContainer);
         });
 
-        it('should add into the sink the quad related to the type, the shape and the target and interprete correctly that the data is at the root of the pod ', () => {
+        it('should add into the sink the quad related to the type, the shape and the target and interpret correctly that the data is at the root of a pod', () => {
             const isNotInRootOfPod = true;
             FragmentationStrategyShape.generateShapetreeTriples(sink, shapeTreeIRI, shapeIRI, isNotInRootOfPod, contentIri);
 
@@ -179,7 +179,6 @@ describe('FragmentationStrategySubject', () => {
             FragmentationStrategyShape.generateShapeTreeLocator = originalImplementationGenerateShapeTreeLocator;
         });
 
-        // https://stackoverflow.com/questions/50421732/mocking-up-static-methods-in-jest
         it("should call the generateShape and the generateShapetreeTriples when the tripleShapeTreeLocator flag is false. It should also add the iri into the resouceHandle set when the tripleShapeTreeLocator flag is false", async () => {
             await FragmentationStrategyShape.generateShapeIndexInformation(sink,
                 resourceHandled,
@@ -211,6 +210,7 @@ describe('FragmentationStrategySubject', () => {
             expect(resourceHandled.size).toBe(1);
             expect(resourceHandled.has(iri)).toBe(true);
         });
+
     });
 
     describe('fragment', () => {
@@ -253,8 +253,7 @@ describe('FragmentationStrategySubject', () => {
                                     ldbcvoc:hasCreator IRI {1} ;
                                     schema:seeAlso IRI * ;
                                     ldbcvoc:isLocatedIn IRI ? ;
-                                }
-                            `;
+                                }`;
                         }
                     })
                 })
@@ -280,7 +279,7 @@ describe('FragmentationStrategySubject', () => {
             expect(sink.push).not.toHaveBeenCalled();
         });
 
-        it('should handle a quad bounded by a shape', async () => {
+        it('should handle a quad referring to a container in a pod bounded by a shape', async () => {
             const quads = [
                 DF.quad(
                     DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562"),
@@ -292,7 +291,29 @@ describe('FragmentationStrategySubject', () => {
             expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
         });
 
-        it('should handle one subject when the quad subject is inside a container in the root of a pod', async () => {
+        it('should handle multiple quads with one quad referring to a container in a pod bounded by a shape', async () => {
+            const quads = [
+                DF.quad(
+                    DF.blankNode(),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.blankNode(),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                )
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+        });
+
+        it('should handle one time quads with the same suject when the suject link to a resource inside a container in a pod', async () => {
             const quads = [
                 DF.quad(
                     DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562"),
@@ -310,7 +331,31 @@ describe('FragmentationStrategySubject', () => {
             expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
         });
 
-        it('should handle a quad bounded by shape when tripleShapeTreeLocator is false', async ()=>{
+        it('should handle multiple subjects when the quad subject is inside a container in the root of a pod', async () => {
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#1"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#2"),
+                    DF.namedNode("boo"),
+                    DF.namedNode("cook")
+                ),
+
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#3"),
+                    DF.namedNode("boo"),
+                    DF.namedNode("cook")
+                )
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes((81 + 3 + 1)*3);
+        });
+
+        it('should handle a quad given that the quad is inside a container in a pod bounded by shape when tripleShapeTreeLocator is false', async ()=>{
             strategy = new FragmentationStrategyShape(shapeFolder, relativePath, false);
             const quads = [
                 DF.quad(
@@ -322,6 +367,136 @@ describe('FragmentationStrategySubject', () => {
             await strategy.fragment(streamifyArray([...quads]), sink);
             expect(sink.push).toHaveBeenCalledTimes(81 + 3);
         });
+
+        it('should handle a quad referring to resource in the root of a pod bounded by a shape', async () => {
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts#1"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                )
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+        });
+
+        it('should handle multiple quads with one quad referring to resource in the root of a pod bounded by a shape', async () => {
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts#1"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.blankNode(),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.blankNode(),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+        });
+
+        it('should handle multiple quads refering to resource in the root of a pod root bounded by a shape', async () => {
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts#1"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts#2"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+        });
+
+        it('should handle multiple quads refering to resource in multiple pod roots that are bounded by a shape', async () => {
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts#1"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/000000000000000002671/posts#2"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes((81 + 3 + 1)*2);
+        });
+        
+        it('should handle a quad given that the quad is inside the root of a pod bounded by shape when tripleShapeTreeLocator is false', async ()=>{
+            strategy = new FragmentationStrategyShape(shapeFolder, relativePath, false);
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts#1"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                )
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes(81 + 3);
+        });
+
+        it('should handle multiples quads where some are bounded to shapes and other not', async () => {
+            const quads = [
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts#1"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/000000000000000002671/posts#2"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.blankNode(),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.blankNode(),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#6871924891562"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/comments/2011-10-13#68732194891562"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+                DF.quad(
+                    DF.namedNode("http://localhost:3000/pods/00000000000000000267/bar/2011-10-13#687194891562"),
+                    DF.namedNode("foo"),
+                    DF.namedNode("bar")
+                ),
+            ];
+            await strategy.fragment(streamifyArray([...quads]), sink);
+            expect(sink.push).toHaveBeenCalledTimes((81 + 3 + 1)*5);
+        });
+        
+
     });
    
 });
