@@ -11,16 +11,18 @@ import { FragmentationStrategySubject } from './FragmentationStrategySubject';
 
 const DF = new DataFactory<RDF.Quad>();
 
+interface IShapeEntry {
+  shape: string;
+  folder: string;
+}
+
 export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapter {
   private readonly relativePath?: string;
   private readonly tripleShapeTreeLocator?: boolean;
-  private readonly shapeMap: Map<string, string>;
+  private readonly shapeMap: Map<string, IShapeEntry>;
 
+  private readonly iriHandled: Set<string> = new Set();
   private readonly resourceHandled: Set<string> = new Set();
-  // This filter is for the case where all the resources are inside one file
-  // in that case we want the shape and the index to target
-  // all the subject inside the file and not generate one file by subject
-  private readonly singleFileContainerHandled: Set<string> = new Set();
 
   public static readonly rdfTypeNode = DF.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#type');
   public static readonly shapeTreeNode = DF.namedNode('http://www.w3.org/ns/shapetrees#ShapeTree');
@@ -37,46 +39,71 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     this.shapeMap = this.generateShapeMap(shapeFolder);
   }
 
-  private generateShapeMap(shapeFolder: string): Map<string, string> {
-    const shapeMap: Map<string, string> = new Map();
+  private generateShapeMap(shapeFolder: string): Map<string, IShapeEntry> {
+    const shapeMap: Map<string, IShapeEntry> = new Map();
     const config = JSON.parse(readFileSync(join(shapeFolder, 'config.json')).toString());
     const shapes = config.shapes;
-    for (const [dataType, shapeEntry] of Object.entries(shapes)) {
-      shapeMap.set(dataType, join(shapeFolder, <string>shapeEntry));
+    for (const [ dataType, shapeEntry ] of Object.entries(shapes)) {
+      shapeMap.set(dataType, {
+        shape: join(shapeFolder, (<IShapeEntry>shapeEntry).shape),
+        folder: (<IShapeEntry>shapeEntry).folder,
+      });
     }
     return shapeMap;
   }
 
   protected async handleQuad(quad: RDF.Quad, quadSink: IQuadSink): Promise<void> {
     const iri = FragmentationStrategySubject.generateIri(quad, this.relativePath);
-    if (!this.resourceHandled.has(iri)) {
-      for (const [resourceIndex, shapePath] of this.shapeMap) {
-        // We are in the case where the resource is not in the root of the pod
-        const positionContainerResourceNotInRoot = iri.indexOf(`/${resourceIndex}/`);
-        if (positionContainerResourceNotInRoot !== -1) {
+    if (!this.iriHandled.has(iri)) {
+      for (const [ resourceIndex, { shape, folder }] of this.shapeMap) {
+        const positionContainerResourceNotInRoot = iri.indexOf(`/${folder}/`);
+        const resourceIdMultipleFiles = `${iri.slice(0, Math.max(0, positionContainerResourceNotInRoot - 1))}/${resourceIndex}`;
+        const positionContainerResourceIsRoot = iri.indexOf(resourceIndex);
+        const resourceIdSingleFile = `${iri.slice(0, Math.max(0, positionContainerResourceIsRoot - 1))}/${resourceIndex}`;
+
+        const podIRI = positionContainerResourceNotInRoot !== -1 ?
+          iri.slice(0, Math.max(0, positionContainerResourceNotInRoot)) :
+          iri.slice(0, Math.max(0, positionContainerResourceIsRoot));
+        const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
+
+        // Add the locator in every unhandled iri if the flag is true
+        if ((positionContainerResourceNotInRoot !== -1 || positionContainerResourceIsRoot !== -1) &&
+          this.tripleShapeTreeLocator === true) {
+          await FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri);
+        }
+
+        // Add the shape index when the resource is in multiple file
+        if (positionContainerResourceNotInRoot !== -1 && !this.resourceHandled.has(resourceIdMultipleFiles)) {
           await FragmentationStrategyShape.generateShapeIndexInformation(quadSink,
+            this.iriHandled,
             this.resourceHandled,
+            resourceIdMultipleFiles,
             iri,
-            positionContainerResourceNotInRoot - 1,
-            resourceIndex,
-            shapePath,
-            this.tripleShapeTreeLocator);
+            podIRI,
+            shapeTreeIRI,
+            folder,
+            shape,
+            false);
           return;
         }
 
-        // We are in the case where the ressource is at the root of the pod
-        const positionContainerResourceInRoot = iri.indexOf(resourceIndex);
-        const resourceInOneFileId = `${iri.slice(0, Math.max(0, positionContainerResourceInRoot - 1))}/${resourceIndex}`;
-        // We check if the resouce is in the root of the pod and we check if the file has been handled
-        if (positionContainerResourceInRoot !== -1 && !this.singleFileContainerHandled.has(resourceInOneFileId)) {
+        // The resource is in multiple file but has been handled
+        if (positionContainerResourceNotInRoot !== -1) {
+          return;
+        }
+
+        // Add the shape index when the resource is in one file
+        if (positionContainerResourceIsRoot !== -1 && !this.resourceHandled.has(resourceIdSingleFile)) {
           await FragmentationStrategyShape.generateShapeIndexInformation(quadSink,
+            this.iriHandled,
             this.resourceHandled,
+            resourceIdSingleFile,
             iri,
-            positionContainerResourceInRoot - 1,
-            resourceIndex,
-            shapePath,
-            this.tripleShapeTreeLocator);
-          this.singleFileContainerHandled.add(resourceInOneFileId);
+            podIRI,
+            shapeTreeIRI,
+            folder,
+            shape,
+            true);
           return;
         }
       }
@@ -84,24 +111,25 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
   }
 
   public static async generateShapeIndexInformation(quadSink: IQuadSink,
+    iriHandled: Set<string>,
     resourceHandled: Set<string>,
+    resourceId: string,
     iri: string,
-    positionContainer: number,
-    resourceIndex: string,
+    podIRI: string,
+    shapeTreeIRI: string,
+    folder: string,
     shapePath: string,
-    tripleShapeTreeLocator?: boolean): Promise<void> {
-    const podIRI = iri.slice(0, Math.max(0, positionContainer));
-    const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
-    const shapeIRI = `${podIRI}/${resourceIndex}_shape`;
+    isInRootOfPod: boolean): Promise<void> {
+    const shapeIRI = `${podIRI}/${folder}_shape`;
+    const contentIri = isInRootOfPod ? `${podIRI}/${folder}` : `${podIRI}/${folder}/`;
 
-    const promises: Promise<void>[] = [];
-    if (tripleShapeTreeLocator === true) {
-      promises.push(FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri));
-    }
-    promises.push(FragmentationStrategyShape.generateShape(quadSink, shapeIRI, shapePath));
-    promises.push(FragmentationStrategyShape.generateShapetreeTriples(quadSink, shapeTreeIRI, shapeIRI, true, iri));
-    await Promise.all(promises);
-    resourceHandled.add(iri);
+    await Promise.all([
+      FragmentationStrategyShape.generateShape(quadSink, shapeIRI, shapePath),
+      FragmentationStrategyShape.generateShapetreeTriples(quadSink, shapeTreeIRI, shapeIRI, isInRootOfPod, contentIri),
+    ]);
+
+    iriHandled.add(iri);
+    resourceHandled.add(resourceId);
   }
 
   public static async generateShapeTreeLocator(quadSink: IQuadSink,
@@ -119,7 +147,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
   public static async generateShapetreeTriples(quadSink: IQuadSink,
     shapeTreeIRI: string,
     shapeIRI: string,
-    isNotInRootOfPod: boolean,
+    isInRootOfPod: boolean,
     contentIri: string): Promise<void> {
     const blankNode = DF.blankNode();
     const type = DF.quad(
@@ -134,7 +162,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     );
     const target = DF.quad(
       blankNode,
-      isNotInRootOfPod ? this.solidInstance : this.solidInstanceContainer,
+      isInRootOfPod ? this.solidInstance : this.solidInstanceContainer,
       DF.namedNode(contentIri),
     );
     await Promise.all(
@@ -158,9 +186,13 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
       // The jsonLD is not valid without the context field and the library doesn't include it
       // because a ShExJ MAY contain a @context field
       // https://shex.io/shex-semantics/#shexj
-      const jsonldParser = new JsonLdParser({ streamingProfile: false, context: 'http://www.w3.org/ns/shex.jsonld', skipContextValidation: true });
+      const jsonldParser = new JsonLdParser({
+        streamingProfile: false,
+        context: 'http://www.w3.org/ns/shex.jsonld',
+        skipContextValidation: true,
+      });
       jsonldParser
-        .on('data', async (quad: RDF.Quad) => {
+        .on('data', async(quad: RDF.Quad) => {
           promises.push(quadSink.push(shapeIRI, quad));
         })
         // We ignore this because it is difficult to provide a valid Shex document that
@@ -170,7 +202,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
         .on('error', /* istanbul ignore next */(error: any) => {
           reject(error);
         })
-        .on('end', async () => {
+        .on('end', async() => {
           await Promise.all(promises);
           resolve();
         });
@@ -184,3 +216,5 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     await super.flush(quadSink);
   }
 }
+
+// Unit test of th cache and add a cache for shapes

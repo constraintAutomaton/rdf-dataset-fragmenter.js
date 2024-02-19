@@ -11,7 +11,7 @@ const DF = new DataFactory();
 jest.mock('fs');
 jest.mock('fs/promises');
 
-describe('FragmentationStrategySubject', () => {
+describe('FragmentationStrategyShape', () => {
   let sink: any;
 
   describe('generateShape', () => {
@@ -98,11 +98,11 @@ describe('FragmentationStrategySubject', () => {
 
     it(`should add into the sink the quad related to the type,
      the shape and the target and interpret correctly that the data is inside a container a pod`, async() => {
-      const isNotInRootOfPod = false;
+      const isInRootOfPod = false;
       await FragmentationStrategyShape.generateShapetreeTriples(sink,
         shapeTreeIRI,
         shapeIRI,
-        isNotInRootOfPod,
+        isInRootOfPod,
         contentIri);
 
       expect(sink.push).toHaveBeenCalledTimes(3);
@@ -161,9 +161,12 @@ describe('FragmentationStrategySubject', () => {
   });
 
   describe('generateShapeIndexInformation', () => {
+    let iriHandled: Set<string> = new Set();
     let resourceHandled: Set<string> = new Set();
     const iri = 'http://localhost:3000/pods/00000000000000000065/posts/2012-05-08#893353212198';
-    const positionContainer = 53;
+    const resourceId = 'http://localhost:3000/pods/00000000000000000065/posts';
+    const podIRI = 'http://localhost:3000/pods/00000000000000000065';
+    const shapeTreeIRI = 'boo';
     const resourceIndex = 'posts';
     const shapePath = 'bar';
 
@@ -172,6 +175,7 @@ describe('FragmentationStrategySubject', () => {
     const originalImplementationGenerateShapeTreeLocator = FragmentationStrategyShape.generateShapeTreeLocator;
 
     beforeEach(() => {
+      iriHandled = new Set();
       resourceHandled = new Set();
       sink = {
         push: jest.fn(),
@@ -190,33 +194,38 @@ describe('FragmentationStrategySubject', () => {
     it(`should call the generateShape and the generateShapetreeTriples when the tripleShapeTreeLocator flag is false.
      It should also add the iri into the resouceHandle set when the tripleShapeTreeLocator flag is false`, async() => {
       await FragmentationStrategyShape.generateShapeIndexInformation(sink,
+        iriHandled,
         resourceHandled,
+        resourceId,
         iri,
-        positionContainer,
+        podIRI,
+        shapeTreeIRI,
         resourceIndex,
         shapePath,
         false);
       expect(FragmentationStrategyShape.generateShapeTreeLocator).toHaveBeenCalledTimes(0);
+      expect(FragmentationStrategyShape.generateShapetreeTriples).toHaveBeenCalledTimes(1);
       expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
-      expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
-      expect(resourceHandled.size).toBe(1);
-      expect(resourceHandled.has(iri)).toBe(true);
+      expect(iriHandled.size).toBe(1);
+      expect(iriHandled.has(iri)).toBe(true);
     });
 
     it(`should call the generateShape, the generateShapetreeTriples and the generateShapeTreeLocator when the tripleShapeTreeLocator flag is true.
      It should also add the iri into the resouceHandle set`, async() => {
       await FragmentationStrategyShape.generateShapeIndexInformation(sink,
+        iriHandled,
         resourceHandled,
+        resourceId,
         iri,
-        positionContainer,
+        podIRI,
+        shapeTreeIRI,
         resourceIndex,
         shapePath,
-        true);
-      expect(FragmentationStrategyShape.generateShapeTreeLocator).toHaveBeenCalledTimes(1);
+        false);
       expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
       expect(FragmentationStrategyShape.generateShapetreeTriples).toHaveBeenCalledTimes(1);
-      expect(resourceHandled.size).toBe(1);
-      expect(resourceHandled.has(iri)).toBe(true);
+      expect(iriHandled.size).toBe(1);
+      expect(iriHandled.has(iri)).toBe(true);
     });
   });
 
@@ -234,11 +243,21 @@ describe('FragmentationStrategySubject', () => {
       (<jest.Mock>readFileSync).mockReturnValue(
         {
           toString: () => `{
-                        "shapes": {
-                            "comments": "comments.shexc",
-                            "posts": "posts.shexc"
-                        }
-                    }`,
+            "shapes": {
+                "comments": {
+                    "shape": "comments.shexc",
+                    "folder": "comments"
+                },
+                "posts": {
+                    "shape": "posts.shexc",
+                    "folder": "posts"
+                },
+                "card": {
+                    "shape": "profile.shexc",
+                    "folder": "profile"
+                }
+            }
+        }`,
         },
       );
 
@@ -274,7 +293,7 @@ describe('FragmentationStrategySubject', () => {
       expect(sink.push).not.toHaveBeenCalled();
     });
 
-    it('should handle a quad not bounded by a shape', async() => {
+    it('should not handle a quad not bounded by a shape', async() => {
       const quads = [
         DF.quad(
           DF.blankNode(),
@@ -360,7 +379,7 @@ describe('FragmentationStrategySubject', () => {
         ),
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes((81 + 3 + 1) * 3);
+      expect(sink.push).toHaveBeenCalledTimes(81 + 3 + (1 * 3));
     });
 
     it(`should handle a quad given that the quad is inside a container in a pod bounded by shape
@@ -427,7 +446,7 @@ describe('FragmentationStrategySubject', () => {
           ),
         ];
         await strategy.fragment(streamifyArray([ ...quads ]), sink);
-        expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+        expect(sink.push).toHaveBeenCalledTimes(81 + 3 + (1 * 2));
       });
 
     it('should handle multiple quads refering to resource in multiple pod roots that are bounded by a shape',
@@ -465,7 +484,17 @@ describe('FragmentationStrategySubject', () => {
     it('should handle multiples quads where some are bounded to shapes and other not', async() => {
       const quads = [
         DF.quad(
+          DF.namedNode('http://localhost:3000/pods/00000000000000000267/profile/card#68732194891562'),
+          DF.namedNode('foo'),
+          DF.namedNode('bar'),
+        ),
+        DF.quad(
           DF.namedNode('http://localhost:3000/pods/00000000000000000267/posts#1'),
+          DF.namedNode('foo'),
+          DF.namedNode('bar'),
+        ),
+        DF.quad(
+          DF.blankNode(),
           DF.namedNode('foo'),
           DF.namedNode('bar'),
         ),
@@ -475,7 +504,12 @@ describe('FragmentationStrategySubject', () => {
           DF.namedNode('bar'),
         ),
         DF.quad(
-          DF.blankNode(),
+          DF.namedNode('http://localhost:3000/pods/000000000000000002671/posts#2'),
+          DF.namedNode('foo'),
+          DF.namedNode('bar'),
+        ),
+        DF.quad(
+          DF.namedNode('http://localhost:3000/pods/000000000000000002671/posts#3'),
           DF.namedNode('foo'),
           DF.namedNode('bar'),
         ),
@@ -484,29 +518,10 @@ describe('FragmentationStrategySubject', () => {
           DF.namedNode('foo'),
           DF.namedNode('bar'),
         ),
-        DF.quad(
-          DF.namedNode('http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562'),
-          DF.namedNode('foo'),
-          DF.namedNode('bar'),
-        ),
-        DF.quad(
-          DF.namedNode('http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#6871924891562'),
-          DF.namedNode('foo'),
-          DF.namedNode('bar'),
-        ),
-        DF.quad(
-          DF.namedNode('http://localhost:3000/pods/00000000000000000267/comments/2011-10-13#68732194891562'),
-          DF.namedNode('foo'),
-          DF.namedNode('bar'),
-        ),
-        DF.quad(
-          DF.namedNode('http://localhost:3000/pods/00000000000000000267/bar/2011-10-13#687194891562'),
-          DF.namedNode('foo'),
-          DF.namedNode('bar'),
-        ),
+
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes((81 + 3 + 1) * 5);
+      expect(sink.push).toHaveBeenCalledTimes((81 + 3 + 1) * 3 + 1);
     });
   });
 });
