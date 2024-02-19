@@ -28,7 +28,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
   public static readonly shapeTreeLocator = DF.namedNode('http://www.w3.org/ns/shapetrees#ShapeTreeLocator');
   public static readonly solidInstance = DF.namedNode('http://www.w3.org/ns/solid/terms#instance');
   public static readonly solidInstanceContainer = DF.namedNode('http://www.w3.org/ns/solid/terms#instanceContainer');
-  public static readonly shapeTreeFileName: string = 'shapetree.nq';
+  public static readonly shapeTreeFileName: string = 'shapetree';
 
   public constructor(shapeFolder: string, relativePath?: string, tripleShapeTreeLocator?: boolean) {
     super();
@@ -41,8 +41,8 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     const shapeMap: Map<string, string> = new Map();
     const config = JSON.parse(readFileSync(join(shapeFolder, 'config.json')).toString());
     const shapes = config.shapes;
-    for (const [ dataType, shapeEntry ] of Object.entries(shapes)) {
-      shapeMap.set(dataType, <string>shapeEntry);
+    for (const [dataType, shapeEntry] of Object.entries(shapes)) {
+      shapeMap.set(dataType, join(shapeFolder, <string>shapeEntry));
     }
     return shapeMap;
   }
@@ -50,7 +50,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
   protected async handleQuad(quad: RDF.Quad, quadSink: IQuadSink): Promise<void> {
     const iri = FragmentationStrategySubject.generateIri(quad, this.relativePath);
     if (!this.resourceHandled.has(iri)) {
-      for (const [ resourceIndex, shapePath ] of this.shapeMap) {
+      for (const [resourceIndex, shapePath] of this.shapeMap) {
         // We are in the case where the resource is not in the root of the pod
         const positionContainerResourceNotInRoot = iri.indexOf(`/${resourceIndex}/`);
         if (positionContainerResourceNotInRoot !== -1) {
@@ -92,7 +92,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     tripleShapeTreeLocator?: boolean): Promise<void> {
     const podIRI = iri.slice(0, Math.max(0, positionContainer));
     const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
-    const shapeIRI = `${podIRI}/${resourceIndex}_shape.nq`;
+    const shapeIRI = `${podIRI}/${resourceIndex}_shape`;
 
     const promises: Promise<void>[] = [];
     if (tripleShapeTreeLocator === true) {
@@ -150,28 +150,27 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     const shexParser = ShexParser.construct(shapeIRI);
     const shapeShexc = (await readFile(shapePath)).toString();
     const shapeJSONLD = shexParser.parse(shapeShexc);
-    // The jsonLD is not valid without the context field and the library doesn't include it
-    // because a ShExJ MAY contain a @context field
-    // https://shex.io/shex-semantics/#shexj
-    shapeJSONLD['@context'] = 'http://www.w3.org/ns/shex.jsonld';
     const stringShapeJsonLD = JSON.stringify(shapeJSONLD);
 
     return new Promise((resolve, reject) => {
       // Stringigy streams
       const promises: Promise<void>[] = [];
-      const jsonldParser = new JsonLdParser();
+      // The jsonLD is not valid without the context field and the library doesn't include it
+      // because a ShExJ MAY contain a @context field
+      // https://shex.io/shex-semantics/#shexj
+      const jsonldParser = new JsonLdParser({ streamingProfile: false, context: 'http://www.w3.org/ns/shex.jsonld', skipContextValidation: true });
       jsonldParser
-        .on('data', async(quad: RDF.Quad) => {
+        .on('data', async (quad: RDF.Quad) => {
           promises.push(quadSink.push(shapeIRI, quad));
         })
-      // We ignore this because it is difficult to provide a valid Shex document that
-      // would not be parsable in RDF when it has been in ShExJ
+        // We ignore this because it is difficult to provide a valid Shex document that
+        // would not be parsable in RDF when it has been in ShExJ
 
-      // eslint-disable-next-line no-inline-comments
+        // eslint-disable-next-line no-inline-comments
         .on('error', /* istanbul ignore next */(error: any) => {
           reject(error);
         })
-        .on('end', async() => {
+        .on('end', async () => {
           await Promise.all(promises);
           resolve();
         });
