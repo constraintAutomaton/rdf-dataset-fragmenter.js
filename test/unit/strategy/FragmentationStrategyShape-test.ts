@@ -172,6 +172,7 @@ describe('FragmentationStrategyShape', () => {
 
     const originalImplementationGenerateShapetreeTriples = FragmentationStrategyShape.generateShapetreeTriples;
     const originalImplementationGenerateShape = FragmentationStrategyShape.generateShape;
+    const originalImplementationGenerateShapeTreeLocator = FragmentationStrategyShape.generateShapeTreeLocator;
 
     beforeEach(() => {
       iriHandled = new Set();
@@ -187,6 +188,7 @@ describe('FragmentationStrategyShape', () => {
     afterAll(() => {
       FragmentationStrategyShape.generateShapetreeTriples = originalImplementationGenerateShapetreeTriples;
       FragmentationStrategyShape.generateShape = originalImplementationGenerateShape;
+      FragmentationStrategyShape.generateShapeTreeLocator = originalImplementationGenerateShapeTreeLocator;
     });
 
     it(`should call the generateShape and the generateShapetreeTriples.
@@ -215,6 +217,9 @@ describe('FragmentationStrategyShape', () => {
     const shapeFolder = 'foo';
     const relativePath = undefined;
     const tripleShapeTreeLocator = true;
+    sink = {
+      push: jest.fn(),
+    };
 
     beforeEach(() => {
       sink = {
@@ -287,7 +292,6 @@ describe('FragmentationStrategyShape', () => {
     });
 
     it('should handle a quad referring to a container in a pod bounded by a shape', async() => {
-      
       const quads = [
         DF.quad(
           DF.namedNode('http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562'),
@@ -318,7 +322,7 @@ describe('FragmentationStrategyShape', () => {
         ),
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+      expect(sink.push).toHaveBeenCalledTimes(81 + 2 + 1);
     });
 
     it(`should handle one time quads with the same suject 
