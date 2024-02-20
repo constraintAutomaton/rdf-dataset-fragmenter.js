@@ -88,7 +88,7 @@ describe('FragmentationStrategyShape', () => {
     const shapeIRI = 'bar';
     const contentIri = 'boo';
 
-    const orderedInfoInQuad = [ FragmentationStrategyShape.shapeTreeNode.value, shapeIRI, contentIri ];
+    const orderedInfoInQuad = [ shapeIRI, contentIri ];
 
     beforeEach(() => {
       sink = {
@@ -105,14 +105,14 @@ describe('FragmentationStrategyShape', () => {
         isInRootOfPod,
         contentIri);
 
-      expect(sink.push).toHaveBeenCalledTimes(3);
+      expect(sink.push).toHaveBeenCalledTimes(2);
       const calls: any[] = sink.push.mock.calls;
       for (const [ i, call ] of calls.entries()) {
         expect(call[0]).toBe(shapeTreeIRI);
         expect((<RDF.Quad>call[1]).object.value).toBe(orderedInfoInQuad[i]);
       }
 
-      expect((<RDF.Quad>calls[2][1]).predicate).toStrictEqual(FragmentationStrategyShape.solidInstanceContainer);
+      expect((<RDF.Quad>calls[1][1]).predicate).toStrictEqual(FragmentationStrategyShape.solidInstanceContainer);
     });
 
     it(`should add into the sink the quad related to the type,
@@ -124,14 +124,14 @@ describe('FragmentationStrategyShape', () => {
         isNotInRootOfPod,
         contentIri);
 
-      expect(sink.push).toHaveBeenCalledTimes(3);
+      expect(sink.push).toHaveBeenCalledTimes(2);
       const calls: any[] = sink.push.mock.calls;
       for (const [ i, call ] of calls.entries()) {
         expect(call[0]).toBe(shapeTreeIRI);
         expect((<RDF.Quad>call[1]).object.value).toBe(orderedInfoInQuad[i]);
       }
 
-      expect((<RDF.Quad>calls[2][1]).predicate).toStrictEqual(FragmentationStrategyShape.solidInstance);
+      expect((<RDF.Quad>calls[1][1]).predicate).toStrictEqual(FragmentationStrategyShape.solidInstance);
     });
   });
 
@@ -172,7 +172,6 @@ describe('FragmentationStrategyShape', () => {
 
     const originalImplementationGenerateShapetreeTriples = FragmentationStrategyShape.generateShapetreeTriples;
     const originalImplementationGenerateShape = FragmentationStrategyShape.generateShape;
-    const originalImplementationGenerateShapeTreeLocator = FragmentationStrategyShape.generateShapeTreeLocator;
 
     beforeEach(() => {
       iriHandled = new Set();
@@ -188,11 +187,10 @@ describe('FragmentationStrategyShape', () => {
     afterAll(() => {
       FragmentationStrategyShape.generateShapetreeTriples = originalImplementationGenerateShapetreeTriples;
       FragmentationStrategyShape.generateShape = originalImplementationGenerateShape;
-      FragmentationStrategyShape.generateShapeTreeLocator = originalImplementationGenerateShapeTreeLocator;
     });
 
-    it(`should call the generateShape and the generateShapetreeTriples when the tripleShapeTreeLocator flag is false.
-     It should also add the iri into the resouceHandle set when the tripleShapeTreeLocator flag is false`, async() => {
+    it(`should call the generateShape and the generateShapetreeTriples.
+     It should also add the iri into the resouceHandle.`, async() => {
       await FragmentationStrategyShape.generateShapeIndexInformation(sink,
         iriHandled,
         resourceHandled,
@@ -203,29 +201,12 @@ describe('FragmentationStrategyShape', () => {
         resourceIndex,
         shapePath,
         false);
-      expect(FragmentationStrategyShape.generateShapeTreeLocator).toHaveBeenCalledTimes(0);
       expect(FragmentationStrategyShape.generateShapetreeTriples).toHaveBeenCalledTimes(1);
       expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
       expect(iriHandled.size).toBe(1);
       expect(iriHandled.has(iri)).toBe(true);
-    });
-
-    it(`should call the generateShape, the generateShapetreeTriples and the generateShapeTreeLocator when the tripleShapeTreeLocator flag is true.
-     It should also add the iri into the resouceHandle set`, async() => {
-      await FragmentationStrategyShape.generateShapeIndexInformation(sink,
-        iriHandled,
-        resourceHandled,
-        resourceId,
-        iri,
-        podIRI,
-        shapeTreeIRI,
-        resourceIndex,
-        shapePath,
-        false);
-      expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
-      expect(FragmentationStrategyShape.generateShapetreeTriples).toHaveBeenCalledTimes(1);
-      expect(iriHandled.size).toBe(1);
-      expect(iriHandled.has(iri)).toBe(true);
+      expect(resourceHandled.size).toBe(1);
+      expect(resourceHandled.has(resourceId)).toBe(true);
     });
   });
 
@@ -306,6 +287,7 @@ describe('FragmentationStrategyShape', () => {
     });
 
     it('should handle a quad referring to a container in a pod bounded by a shape', async() => {
+      
       const quads = [
         DF.quad(
           DF.namedNode('http://localhost:3000/pods/00000000000000000267/posts/2011-10-13#687194891562'),
@@ -314,7 +296,7 @@ describe('FragmentationStrategyShape', () => {
         ),
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+      expect(sink.push).toHaveBeenCalledTimes(81 + 2 + 1);
     });
 
     it('should handle multiple quads with one quad referring to a container in a pod bounded by a shape', async() => {
@@ -355,7 +337,7 @@ describe('FragmentationStrategyShape', () => {
         ),
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+      expect(sink.push).toHaveBeenCalledTimes(81 + 2 + 1);
     });
 
     it('should handle multiple subjects when the quad subject is inside a container in the root of a pod', async() => {
@@ -379,7 +361,7 @@ describe('FragmentationStrategyShape', () => {
         ),
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes(81 + 3 + (1 * 3));
+      expect(sink.push).toHaveBeenCalledTimes(81 + 2 + (1 * 3));
     });
 
     it(`should handle a quad given that the quad is inside a container in a pod bounded by shape
@@ -393,7 +375,7 @@ describe('FragmentationStrategyShape', () => {
         ),
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes(81 + 3);
+      expect(sink.push).toHaveBeenCalledTimes(81 + 2);
     });
 
     it('should handle a quad referring to resource in the root of a pod bounded by a shape', async() => {
@@ -405,7 +387,7 @@ describe('FragmentationStrategyShape', () => {
         ),
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+      expect(sink.push).toHaveBeenCalledTimes(81 + 2 + 1);
     });
 
     it(`should handle multiple quads with one quad referring to resource in the root of a pod bounded by a shape`,
@@ -428,7 +410,7 @@ describe('FragmentationStrategyShape', () => {
           ),
         ];
         await strategy.fragment(streamifyArray([ ...quads ]), sink);
-        expect(sink.push).toHaveBeenCalledTimes(81 + 3 + 1);
+        expect(sink.push).toHaveBeenCalledTimes(81 + 2 + 1);
       });
 
     it('should handle multiple quads refering to resource in the root of a pod root bounded by a shape',
@@ -446,7 +428,7 @@ describe('FragmentationStrategyShape', () => {
           ),
         ];
         await strategy.fragment(streamifyArray([ ...quads ]), sink);
-        expect(sink.push).toHaveBeenCalledTimes(81 + 3 + (1 * 2));
+        expect(sink.push).toHaveBeenCalledTimes(81 + 2 + (1 * 2));
       });
 
     it('should handle multiple quads refering to resource in multiple pod roots that are bounded by a shape',
@@ -464,7 +446,7 @@ describe('FragmentationStrategyShape', () => {
           ),
         ];
         await strategy.fragment(streamifyArray([ ...quads ]), sink);
-        expect(sink.push).toHaveBeenCalledTimes((81 + 3 + 1) * 2);
+        expect(sink.push).toHaveBeenCalledTimes((81 + 2 + 1) * 2);
       });
 
     it(`should handle a quad given that the quad is inside the root of a pod bounded by shape
@@ -478,7 +460,7 @@ describe('FragmentationStrategyShape', () => {
         ),
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes(81 + 3);
+      expect(sink.push).toHaveBeenCalledTimes(81 + 2);
     });
 
     it('should handle multiples quads where some are bounded to shapes and other not', async() => {
@@ -521,7 +503,7 @@ describe('FragmentationStrategyShape', () => {
 
       ];
       await strategy.fragment(streamifyArray([ ...quads ]), sink);
-      expect(sink.push).toHaveBeenCalledTimes((81 + 3 + 1) * 3 + 1);
+      expect(sink.push).toHaveBeenCalledTimes((81 + 2 + 1) * 3 + 1);
     });
   });
 });
