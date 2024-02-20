@@ -65,8 +65,8 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
             `${iri.slice(0, Math.max(0, positionContainerResourceIsRoot - 1))}/${resourceIndex}`;
 
           const podIRI = positionContainerResourceNotInRoot !== -1 ?
-            iri.slice(0, Math.max(0, positionContainerResourceNotInRoot)) :
-            iri.slice(0, Math.max(0, positionContainerResourceIsRoot));
+            iri.slice(0, Math.max(0, positionContainerResourceNotInRoot - 1)) :
+            iri.slice(0, Math.max(0, positionContainerResourceIsRoot - 1));
           const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
           if (this.tripleShapeTreeLocator === true) {
             await FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri);
@@ -125,7 +125,9 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     await quadSink.push(iri, shapeTreeIndicator);
   }
 
-  // TODO when the vocabulary will be done, it is need to handle the header of the shapetree iri
+  // TODO when the vocabulary will be done, it is needed to handle the header of the shapetree iri
+  // AKA saying that the resource is a shape index, make sure it is declare only one time
+  // like bun the blank node to the resource
   public static async generateShapetreeTriples(quadSink: IQuadSink,
     shapeTreeIRI: string,
     shapeIRI: string,

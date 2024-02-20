@@ -163,11 +163,10 @@ describe('FragmentationStrategyShape', () => {
   describe('generateShapeIndexInformation', () => {
     let iriHandled: Set<string> = new Set();
     let resourceHandled: Set<string> = new Set();
-    const iri = 'http://localhost:3000/pods/00000000000000000065/posts/2012-05-08#893353212198';
-    const resourceId = 'http://localhost:3000/pods/00000000000000000065/posts';
+
     const podIRI = 'http://localhost:3000/pods/00000000000000000065';
     const shapeTreeIRI = 'boo';
-    const resourceIndex = 'posts';
+    const folder = 'posts';
     const shapePath = 'bar';
 
     const originalImplementationGenerateShapetreeTriples = FragmentationStrategyShape.generateShapetreeTriples;
@@ -191,8 +190,10 @@ describe('FragmentationStrategyShape', () => {
       FragmentationStrategyShape.generateShapeTreeLocator = originalImplementationGenerateShapeTreeLocator;
     });
 
-    it(`should call the generateShape and the generateShapetreeTriples.
+    it(`should call the generateShape and the generateShapetreeTriples when the iri is in a resource in the pod.
      It should also add the iri into the resouceHandle.`, async() => {
+      const iri = 'http://localhost:3000/pods/00000000000000000065/posts/2012-05-08#893353212198';
+      const resourceId = 'http://localhost:3000/pods/00000000000000000065/posts';
       await FragmentationStrategyShape.generateShapeIndexInformation(sink,
         iriHandled,
         resourceHandled,
@@ -200,11 +201,53 @@ describe('FragmentationStrategyShape', () => {
         iri,
         podIRI,
         shapeTreeIRI,
-        resourceIndex,
+        folder,
         shapePath,
         false);
       expect(FragmentationStrategyShape.generateShapetreeTriples).toHaveBeenCalledTimes(1);
       expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
+
+      expect(FragmentationStrategyShape.generateShapetreeTriples).toHaveBeenNthCalledWith(
+        1,
+        sink,
+        shapeTreeIRI,
+        `${podIRI}/${folder}_shape`,
+        false,
+        'http://localhost:3000/pods/00000000000000000065/posts/',
+      );
+
+      expect(iriHandled.size).toBe(1);
+      expect(iriHandled.has(iri)).toBe(true);
+      expect(resourceHandled.size).toBe(1);
+      expect(resourceHandled.has(resourceId)).toBe(true);
+    });
+
+    it(`should call the generateShape and the generateShapetreeTriples when the iri is in the root.
+     It should also add the iri into the resouceHandle.`, async() => {
+      const iri = 'http://localhost:3000/pods/00000000000000000065/posts#bla';
+      const resourceId = 'http://localhost:3000/pods/00000000000000000065/posts';
+      await FragmentationStrategyShape.generateShapeIndexInformation(sink,
+        iriHandled,
+        resourceHandled,
+        resourceId,
+        iri,
+        podIRI,
+        shapeTreeIRI,
+        folder,
+        shapePath,
+        true);
+      expect(FragmentationStrategyShape.generateShapetreeTriples).toHaveBeenCalledTimes(1);
+      expect(FragmentationStrategyShape.generateShape).toHaveBeenCalledTimes(1);
+
+      expect(FragmentationStrategyShape.generateShapetreeTriples).toHaveBeenNthCalledWith(
+        1,
+        sink,
+        shapeTreeIRI,
+        `${podIRI}/${folder}_shape`,
+        true,
+        'http://localhost:3000/pods/00000000000000000065/posts',
+      );
+
       expect(iriHandled.size).toBe(1);
       expect(iriHandled.has(iri)).toBe(true);
       expect(resourceHandled.size).toBe(1);
