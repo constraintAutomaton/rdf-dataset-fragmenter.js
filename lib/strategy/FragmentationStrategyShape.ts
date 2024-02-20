@@ -8,6 +8,8 @@ import { DataFactory } from 'rdf-data-factory';
 import type { IQuadSink } from '../io/IQuadSink';
 import { FragmentationStrategyStreamAdapter } from './FragmentationStrategyStreamAdapter';
 import { FragmentationStrategySubject } from './FragmentationStrategySubject';
+// eslint-disable-next-line import/extensions
+import SHEX_CONTEXT from './shex_context.json';
 
 const DF = new DataFactory<RDF.Quad>();
 
@@ -57,19 +59,19 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     if (!this.iriHandled.has(iri)) {
       for (const [ resourceIndex, { shape, folder }] of this.shapeMap) {
         const positionContainerResourceNotInRoot = iri.indexOf(`/${folder}/`);
-        const positionContainerResourceIsRoot = iri.indexOf(resourceIndex);
+        const positionContainerResourceIsRoot = iri.indexOf(`/${resourceIndex}`);
 
         if (positionContainerResourceNotInRoot !== -1 || positionContainerResourceIsRoot !== -1) {
           const resourceId = positionContainerResourceNotInRoot !== -1 ?
-            `${iri.slice(0, Math.max(0, positionContainerResourceNotInRoot - 1))}/${resourceIndex}` :
-            `${iri.slice(0, Math.max(0, positionContainerResourceIsRoot - 1))}/${resourceIndex}`;
+            `${iri.slice(0, Math.max(0, positionContainerResourceNotInRoot))}/${resourceIndex}` :
+            `${iri.slice(0, Math.max(0, positionContainerResourceIsRoot))}/${resourceIndex}`;
 
           const podIRI = positionContainerResourceNotInRoot !== -1 ?
-            iri.slice(0, Math.max(0, positionContainerResourceNotInRoot - 1)) :
-            iri.slice(0, Math.max(0, positionContainerResourceIsRoot - 1));
+            iri.slice(0, Math.max(0, positionContainerResourceNotInRoot)) :
+            iri.slice(0, Math.max(0, positionContainerResourceIsRoot));
           const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
           if (this.tripleShapeTreeLocator === true) {
-            await FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri);
+            await FragmentationStrategyShape.generateShapeTreeLocator(quadSink, `${podIRI}/`, shapeTreeIRI, iri);
           }
 
           if (!this.resourceHandled.has(resourceId)) {
@@ -82,7 +84,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
               shapeTreeIRI,
               folder,
               shape,
-              false);
+              positionContainerResourceNotInRoot === -1);
             return;
           }
         }
@@ -101,7 +103,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     shapePath: string,
     isInRootOfPod: boolean): Promise<void> {
     const shapeIRI = `${podIRI}/${folder}_shape`;
-    const contentIri = isInRootOfPod ? `${podIRI}/${folder}` : `${podIRI}/${folder}/`;
+    const contentIri = isInRootOfPod ? resourceId : `${podIRI}/${folder}/`;
     const promises = [
       FragmentationStrategyShape.generateShape(quadSink, shapeIRI, shapePath),
       FragmentationStrategyShape.generateShapetreeTriples(quadSink, shapeTreeIRI, shapeIRI, isInRootOfPod, contentIri),
@@ -166,7 +168,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
       // https://shex.io/shex-semantics/#shexj
       const jsonldParser = new JsonLdParser({
         streamingProfile: false,
-        context: 'http://www.w3.org/ns/shex.jsonld',
+        context: SHEX_CONTEXT,
         skipContextValidation: true,
       });
       jsonldParser
