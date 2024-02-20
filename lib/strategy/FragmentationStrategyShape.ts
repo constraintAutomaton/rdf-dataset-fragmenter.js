@@ -125,6 +125,7 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     await quadSink.push(iri, shapeTreeIndicator);
   }
 
+  // TODO when the vocabulary will be done, it is need to handle the header of the shapetree iri
   public static async generateShapetreeTriples(quadSink: IQuadSink,
     shapeTreeIRI: string,
     shapeIRI: string,
@@ -191,5 +192,3 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     await super.flush(quadSink);
   }
 }
-
-// Unit test of th cache and add a cache for shapes
