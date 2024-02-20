@@ -57,52 +57,36 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     if (!this.iriHandled.has(iri)) {
       for (const [resourceIndex, { shape, folder }] of this.shapeMap) {
         const positionContainerResourceNotInRoot = iri.indexOf(`/${folder}/`);
-        const resourceIdMultipleFiles = `${iri.slice(0, Math.max(0, positionContainerResourceNotInRoot - 1))}/${resourceIndex}`;
         const positionContainerResourceIsRoot = iri.indexOf(resourceIndex);
-        const resourceIdSingleFile = `${iri.slice(0, Math.max(0, positionContainerResourceIsRoot - 1))}/${resourceIndex}`;
 
-        const podIRI = positionContainerResourceNotInRoot !== -1 ?
-          iri.slice(0, Math.max(0, positionContainerResourceNotInRoot)) :
-          iri.slice(0, Math.max(0, positionContainerResourceIsRoot));
-        const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
+        if (positionContainerResourceNotInRoot !== -1 || positionContainerResourceIsRoot !== -1) {
+          const resourceId = positionContainerResourceNotInRoot !== -1 ?
+            `${iri.slice(0, Math.max(0, positionContainerResourceNotInRoot - 1))}/${resourceIndex}` :
+            `${iri.slice(0, Math.max(0, positionContainerResourceIsRoot - 1))}/${resourceIndex}`;
 
-        // Add the shape index when the resource is in multiple file
-        if (positionContainerResourceNotInRoot !== -1 && !this.resourceHandled.has(resourceIdMultipleFiles)) {
+          const podIRI = positionContainerResourceNotInRoot !== -1 ?
+            iri.slice(0, Math.max(0, positionContainerResourceNotInRoot)) :
+            iri.slice(0, Math.max(0, positionContainerResourceIsRoot));
+          const shapeTreeIRI = `${podIRI}/${FragmentationStrategyShape.shapeTreeFileName}`;
+          if (this.tripleShapeTreeLocator === true) {
+            await FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri)
+          }
 
-          await FragmentationStrategyShape.generateShapeIndexInformation(quadSink,
-            this.iriHandled,
-            this.resourceHandled,
-            resourceIdMultipleFiles,
-            iri,
-            podIRI,
-            shapeTreeIRI,
-            folder,
-            shape,
-            false,
-            this.tripleShapeTreeLocator);
-          return;
+          if (!this.resourceHandled.has(resourceId)) {
+            await FragmentationStrategyShape.generateShapeIndexInformation(quadSink,
+              this.iriHandled,
+              this.resourceHandled,
+              resourceId,
+              iri,
+              podIRI,
+              shapeTreeIRI,
+              folder,
+              shape,
+              false);
+            return;
+          }
         }
 
-        // The resource is in multiple file but has been handled
-        if (positionContainerResourceNotInRoot !== -1) {
-          return;
-        }
-
-        // Add the shape index when the resource is in one file
-        if (positionContainerResourceIsRoot !== -1 && !this.resourceHandled.has(resourceIdSingleFile)) {
-          await FragmentationStrategyShape.generateShapeIndexInformation(quadSink,
-            this.iriHandled,
-            this.resourceHandled,
-            resourceIdSingleFile,
-            iri,
-            podIRI,
-            shapeTreeIRI,
-            folder,
-            shape,
-            true,
-            this.tripleShapeTreeLocator);
-          return;
-        }
       }
     }
   }
@@ -116,18 +100,13 @@ export class FragmentationStrategyShape extends FragmentationStrategyStreamAdapt
     shapeTreeIRI: string,
     folder: string,
     shapePath: string,
-    isInRootOfPod: boolean,
-    tripleShapeTreeLocator?:boolean): Promise<void> {
+    isInRootOfPod: boolean): Promise<void> {
     const shapeIRI = `${podIRI}/${folder}_shape`;
     const contentIri = isInRootOfPod ? `${podIRI}/${folder}` : `${podIRI}/${folder}/`;
     const promises = [
       FragmentationStrategyShape.generateShape(quadSink, shapeIRI, shapePath),
       FragmentationStrategyShape.generateShapetreeTriples(quadSink, shapeTreeIRI, shapeIRI, isInRootOfPod, contentIri)];
-    if (tripleShapeTreeLocator===true) {
-      promises.push(
-        FragmentationStrategyShape.generateShapeTreeLocator(quadSink, podIRI, shapeTreeIRI, iri)
-      );
-    }
+
     await Promise.all(promises);
 
     iriHandled.add(iri);
