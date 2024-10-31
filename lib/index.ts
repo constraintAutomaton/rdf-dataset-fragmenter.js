@@ -34,6 +34,7 @@ export * from './transform/termtemplate/TermTemplateQuadComponent';
 export * from './transform/termtemplate/TermTemplateStaticNamedNode';
 export * from './transform/value/IValueModifier';
 export * from './transform/value/ValueModifierRegexReplaceGroup';
+export * from './transform/value/ValueModifierRegexReplace';
 export * from './transform/IQuadTransformer';
 export * from './transform/QuadTransformerAppendQuad';
 export * from './transform/QuadTransformerAppendQuadLink';
