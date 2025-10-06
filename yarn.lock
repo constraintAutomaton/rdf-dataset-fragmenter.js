@@ -5493,6 +5493,11 @@ resolve@~1.19.0:
     is-core-module "^2.1.0"
     path-parse "^1.0.6"
 
+result-interface@^2.3.3:
+  version "2.3.3"
+  resolved "https://registry.yarnpkg.com/result-interface/-/result-interface-2.3.3.tgz#56e61cf132a2114e1b30dce89bb98911d680c11e"
+  integrity sha512-qRsCBWEk52CqcbFMM8mbmWk3gfw3gM6KUvUsoWpM20X3E2rhd/T2TYJQZvLhR5XI0tF9VtHzTk3g7q2TDvf3fA==
+
 reusify@^1.0.4:
   version "1.0.4"
   resolved "https://registry.yarnpkg.com/reusify/-/reusify-1.0.4.tgz#90da382b1e126efc02146e90845a88db12925d76"
