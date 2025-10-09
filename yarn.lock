@@ -1309,6 +1309,14 @@
   resolved "https://registry.yarnpkg.com/@types/minimist/-/minimist-1.2.5.tgz#ec10755e871497bcd83efe927e43ec46e8c0747e"
   integrity sha512-hov8bUuiLiyFPGyFPE1lwWhmzYbirOXQNNo40+y3zow8aFVTeyn3VWL0VFFfdNddA8S4Vf0Tc062rzyNr7Paag==
 
+"@types/n3@^1.26.0":
+  version "1.26.0"
+  resolved "https://registry.yarnpkg.com/@types/n3/-/n3-1.26.0.tgz#7ba7792b7fe534ecc44863e6adbc60d926ea09ff"
+  integrity sha512-ugCaNuBvnSVBE0mEbHQ+2g5dC05EujW/XLhHDvI6a0q6cajJrQosy4CWF+B/O1kxH8lYDR60lBTC0duXXsE+VA==
+  dependencies:
+    "@rdfjs/types" "*"
+    "@types/node" "*"
+
 "@types/node@*":
   version "20.14.9"
   resolved "https://registry.yarnpkg.com/@types/node/-/node-20.14.9.tgz#12e8e765ab27f8c421a1820c99f5f313a933b420"
@@ -4717,6 +4725,14 @@ n3@^1.16.3, n3@^1.17.0:
   dependencies:
     buffer "^6.0.3"
     queue-microtask "^1.1.2"
+    readable-stream "^4.0.0"
+
+n3@^1.26.0:
+  version "1.26.0"
+  resolved "https://registry.yarnpkg.com/n3/-/n3-1.26.0.tgz#3d69de04bee680b9ebec9dbc1033dc1e6934d351"
+  integrity sha512-SQknS0ua90rN+3RHuk8BeIqeYyqIH/+ecViZxX08jR4j6MugqWRjtONl3uANG/crWXnOM2WIqBJtjIhVYFha+w==
+  dependencies:
+    buffer "^6.0.3"
     readable-stream "^4.0.0"
 
 nan@^2.18.0, nan@^2.19.0:
