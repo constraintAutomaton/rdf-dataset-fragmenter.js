@@ -1,6 +1,7 @@
 import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import type { IQuadTransformer } from './IQuadTransformer';
+import * as fs from 'fs';
 
 const DF = new DataFactory<RDF.BaseQuad>();
 /**
@@ -16,7 +17,13 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
 
   public constructor(args: IQuadTransformMultipleVocabulariesOptions) {
     this.datasetPatterns = new RegExp(args.datasetPatterns, 'u');
-    const rules = args.rules;
+    let rules:IRuleArg[][] = [];
+    if(typeof args.rules === "string"){
+      const data = fs.readFileSync(args.rules, 'utf-8');
+      rules = JSON.parse(data)["rules"];
+    }else{
+      rules = args.rules;
+    }
     for (const ruleSet of rules) {
       for (const rule of ruleSet) {
         if (QuadTransformMultipleVocabulary.SAME_AS.value !== rule.inference.value) {
@@ -192,7 +199,7 @@ export interface IQuadTransformMultipleVocabulariesOptions {
   /**
    * The sets of rules that change the vocabulary of the dataset
    */
-  rules: IRuleArg[][];
+  rules: IRuleArg[][]|string;
 }
 
 export type RuleSet = IRule[];
