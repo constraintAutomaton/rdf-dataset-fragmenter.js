@@ -203,12 +203,12 @@ export interface IRule {
   conclusion: RDF.NamedNode | RDF.BlankNode | RDF.Literal;
 }
 
-interface ITerm {
+export interface ITerm {
   value:string;
   termType:string;
 }
 
-interface IRuleArg{
+export interface IRuleArg{
   premise: ITerm;
   inference:ITerm;
   conclusion:ITerm
