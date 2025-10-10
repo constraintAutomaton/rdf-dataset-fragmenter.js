@@ -2,7 +2,7 @@ import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import type {
   IRule,
-  IQuadTransformMultipleVocabularyArgs,
+  IQuadTransformMultipleVocabulariesOptions,
   RuleSet,
 } from '../../../lib/transform/QuadTransformMultipleVocabulary';
 import {
@@ -266,7 +266,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
 
   describe('getRuleSet', () => {
     it('should get no rule given a transformer with no rule set', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [],
       };
@@ -283,7 +283,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
 
     it('should get rules given a transformer with rules and a matching subject', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
@@ -327,7 +327,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
 
     it('should get rules given a transformer with rules and a matching object', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
@@ -371,7 +371,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
 
     it('should not get rules given a transformer with rules and a matching predicate', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
@@ -416,7 +416,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
 
   describe('constructor', () => {
     it('should throw given an inference that is not supported', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
@@ -449,7 +449,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
 
     it('should construct', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
@@ -487,7 +487,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
 
   describe('transform', () => {
     it('should return the same quad given no rule set is associated with the dataset of the quad', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
@@ -532,7 +532,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
 
     it('should return the same quad given a rule not related to the quad', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
@@ -577,7 +577,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
 
     it('should return the transformed quad given a rule related to the quad', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
@@ -630,7 +630,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
 
     it('should return the transformed quad given a rule related to the quad given a second pass', () => {
-      const args: IQuadTransformMultipleVocabularyArgs = {
+      const args: IQuadTransformMultipleVocabulariesOptions = {
         datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [

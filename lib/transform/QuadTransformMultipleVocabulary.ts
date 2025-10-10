@@ -14,7 +14,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
     'http://www.w3.org/2002/07/owl#sameAs',
   );
 
-  public constructor(args: IQuadTransformMultipleVocabularyArgs) {
+  public constructor(args: IQuadTransformMultipleVocabulariesOptions) {
     this.datasetPatterns = new RegExp(args.datasetPatterns, 'u');
     const rules = args.rules;
     for (const ruleSet of rules) {
@@ -184,7 +184,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
 /**
  * The argument of the component
  */
-export interface IQuadTransformMultipleVocabularyArgs {
+export interface IQuadTransformMultipleVocabulariesOptions {
   /**
    * Regex identifying a dataset
    */
