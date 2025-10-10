@@ -16,19 +16,20 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
 
   public constructor(args: IQuadTransformMultipleVocabularyArgs) {
     this.datasetPatterns = new RegExp(args.datasetPatterns, 'u');
-    this.rules = args.rules;
-    for (const ruleSet of this.rules) {
+    const rules = args.rules;
+    for (const ruleSet of rules) {
       for (const rule of ruleSet) {
-        if (!QuadTransformMultipleVocabulary.SAME_AS.equals(rule.inference)) {
+        if (QuadTransformMultipleVocabulary.SAME_AS.value !== rule.inference.value) {
           throw new Error(
             `${rule.inference.value} is not a suported inference`,
           );
         }
-        rule.premise = DF.fromTerm(rule.premise);
-        rule.inference = DF.fromTerm(rule.inference);
-        rule.conclusion = DF.fromTerm(rule.conclusion);
+        rule.premise = DF.fromTerm(<RDF.Term>rule.premise);
+        rule.inference = DF.fromTerm(<RDF.Term>rule.inference);
+        rule.conclusion = DF.fromTerm(<RDF.Term>rule.conclusion);
       }
     }
+    this.rules = <RuleSet[]>rules;
   }
 
   public transform(quad: RDF.Quad): RDF.Quad[] {
@@ -191,7 +192,7 @@ export interface IQuadTransformMultipleVocabularyArgs {
   /**
    * The sets of rules that change the vocabulary of the dataset
    */
-  rules: RuleSet[];
+  rules: RuleSet[]|IRuleArg[][];
 }
 
 export type RuleSet = IRule[];
@@ -200,4 +201,15 @@ export interface IRule {
   premise: RDF.NamedNode | RDF.BlankNode | RDF.Literal;
   inference: RDF.NamedNode | RDF.BlankNode | RDF.Literal;
   conclusion: RDF.NamedNode | RDF.BlankNode | RDF.Literal;
+}
+
+interface ITerm {
+  value:string;
+  termType:string;
+}
+
+interface IRuleArg{
+  premise: ITerm;
+  inference:ITerm;
+  conclusion:ITerm
 }
