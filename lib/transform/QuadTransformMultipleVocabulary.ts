@@ -1,6 +1,6 @@
-import type * as RDF from "@rdfjs/types";
-import type { IQuadTransformer } from "./IQuadTransformer";
-import { DataFactory } from "rdf-data-factory";
+import type * as RDF from '@rdfjs/types';
+import { DataFactory } from 'rdf-data-factory';
+import type { IQuadTransformer } from './IQuadTransformer';
 
 const DF = new DataFactory<RDF.BaseQuad>();
 /**
@@ -11,17 +11,17 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
   public readonly rules: RuleSet[];
   public readonly dataSetRuleAssoc: Map<string, RuleSet> = new Map();
   public static readonly SAME_AS = DF.namedNode(
-    "http://www.w3.org/2002/07/owl#sameAs"
+    'http://www.w3.org/2002/07/owl#sameAs',
   );
 
   public constructor(args: IQuadTransformMultipleVocabularyArgs) {
-    this.datasetPatterns = new RegExp(args.datasetPatterns, "u");
+    this.datasetPatterns = new RegExp(args.datasetPatterns, 'u');
     this.rules = args.rules;
     for (const ruleSet of this.rules) {
       for (const rule of ruleSet) {
         if (!QuadTransformMultipleVocabulary.SAME_AS.equals(rule.inference)) {
           throw new Error(
-            `${rule.inference.value} is not a suported inference`
+            `${rule.inference.value} is not a suported inference`,
           );
         }
         rule.premise = DF.fromTerm(rule.premise);
@@ -34,9 +34,9 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
   public transform(quad: RDF.Quad): RDF.Quad[] {
     const ruleSet = this.getRuleSet(quad);
     if (ruleSet === undefined) {
-      return [quad];
+      return [ quad ];
     }
-    // we cast because nothing stop a user to produce base quad instead of quads
+    // We cast because nothing stop a user to produce base quad instead of quads
     return [
       <RDF.Quad>(
         QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(quad, ruleSet)
@@ -46,15 +46,15 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
 
   /**
    * From a quad get the matching dataset
-   * @param {RDF.Quad} quad 
+   * @param {RDF.Quad} quad
    * @returns {string | undefined} the matching dataset
    */
   public getMatchingDataset(quad: RDF.Quad): string | undefined {
-    const subjectMatches = quad.subject.value.match(this.datasetPatterns);
+    const subjectMatches = this.datasetPatterns.exec(quad.subject.value);
     if (subjectMatches !== null) {
       return subjectMatches[0];
     }
-    const objectMatches = quad.object.value.match(this.datasetPatterns);
+    const objectMatches = this.datasetPatterns.exec(quad.object.value);
     if (objectMatches !== null) {
       return objectMatches[0];
     }
@@ -63,10 +63,10 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
 
   /**
    * Get a rule set that is relevant to a quad.
-   * It first look if the subject of the quad is part of a dataset then 
+   * It first look if the subject of the quad is part of a dataset then
    * it look at the object.
    * If the quad is not part of a dataset then undefined is returned.
-   * @param {RDF.Quad} quad 
+   * @param {RDF.Quad} quad
    * @returns {RuleSet | undefined} the relevant rule set to the quad.
    */
   public getRuleSet(quad: RDF.Quad): RuleSet | undefined {
@@ -93,7 +93,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       hash = (hash << 5) - hash + str.charCodeAt(i);
-      hash |= 0;
+      hash = Math.trunc(hash);
     }
     return Math.abs(hash);
   }
@@ -106,7 +106,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
    */
   public static transfromQuadFromRuleSet(
     quad: RDF.BaseQuad,
-    ruleSet: RuleSet
+    ruleSet: RuleSet,
   ): RDF.BaseQuad {
     const resp: RDF.BaseQuad[] = [];
     for (const rule of ruleSet) {
@@ -128,7 +128,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
    */
   private static mergeQuad(
     quads: RDF.BaseQuad[],
-    originalQuad: RDF.BaseQuad
+    originalQuad: RDF.BaseQuad,
   ): RDF.BaseQuad {
     let subject = originalQuad.subject;
     let predicate = originalQuad.predicate;
@@ -147,6 +147,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
 
     return DF.quad(subject, predicate, object);
   }
+
   /**
    * Transform a quad given a rule.
    * @param {RDF.BaseQuad} quad
@@ -160,6 +161,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
 
     return DF.quad(subject, predicate, object);
   }
+
   /**
    * Transform a RDF term based on the reverse of a rule.
    * Cannot work if the rule cannot be reverted.
@@ -195,7 +197,7 @@ export interface IQuadTransformMultipleVocabularyArgs {
 export type RuleSet = IRule[];
 
 export interface IRule {
-  premise: RDF.NamedNode| RDF.BlankNode| RDF.Literal;
-  inference: RDF.NamedNode| RDF.BlankNode| RDF.Literal;
-  conclusion: RDF.NamedNode| RDF.BlankNode| RDF.Literal;
+  premise: RDF.NamedNode | RDF.BlankNode | RDF.Literal;
+  inference: RDF.NamedNode | RDF.BlankNode | RDF.Literal;
+  conclusion: RDF.NamedNode | RDF.BlankNode | RDF.Literal;
 }

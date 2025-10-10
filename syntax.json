@@ -1,29 +1,29 @@
 {
-    "datasetPatterns": [
-      "^(.*\\/pods\\/[0-9]+\\/)"
+  "datasetPatterns": [
+    "^(.*\\/pods\\/[0-9]+\\/)"
+  ],
+  "seed": 1,
+  "rule_filepath": "rules.ttl",
+  "rules": [
+    [
+      {
+        "input": "a",
+        "operator": "sameAs",
+        "output": "b"
+      }
     ],
-    "seed": 1,
-    "rule_filepath":"rules.ttl",
-    "rules":[
-        [
-            {
-                "input":"a",
-                "operator":"sameAs",
-                "output":"b"
-            }
-        ],
-        [
-            {
-                "input":"a",
-                "operator":"sameAs",
-                "output":"b"
-            },
-            {
-                "input":"a",
-                "operator":"sameAs",
-                "output":"b"
-            }
-        ]
-        
+    [
+      {
+        "input": "a",
+        "operator": "sameAs",
+        "output": "b"
+      },
+      {
+        "input": "a",
+        "operator": "sameAs",
+        "output": "b"
+      }
     ]
+
+  ]
 }

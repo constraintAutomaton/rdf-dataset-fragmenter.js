@@ -1,44 +1,46 @@
-import {
+import type * as RDF from '@rdfjs/types';
+import { DataFactory } from 'rdf-data-factory';
+import type {
   IRule,
-  QuadTransformMultipleVocabulary,
   IQuadTransformMultipleVocabularyArgs,
   RuleSet,
-} from "../../../lib/transform/QuadTransformMultipleVocabulary";
-import * as RDF from "@rdfjs/types";
-import { DataFactory } from "rdf-data-factory";
+} from '../../../lib/transform/QuadTransformMultipleVocabulary';
+import {
+  QuadTransformMultipleVocabulary,
+} from '../../../lib/transform/QuadTransformMultipleVocabulary';
 
 const DF = new DataFactory<RDF.BaseQuad>();
 
 describe(QuadTransformMultipleVocabulary.name, () => {
   describe(QuadTransformMultipleVocabulary.transformTerm.name, () => {
-    it("should return the premise of a rule given the term targeted is the conclusion", () => {
-      const term = DF.namedNode("c");
+    it('should return the premise of a rule given the term targeted is the conclusion', () => {
+      const term = DF.namedNode('c');
       const rule: IRule = {
-        premise: DF.namedNode("p"),
+        premise: DF.namedNode('p'),
         inference: QuadTransformMultipleVocabulary.SAME_AS,
-        conclusion: DF.namedNode("c"),
+        conclusion: DF.namedNode('c'),
       };
       const resp = QuadTransformMultipleVocabulary.transformTerm(term, rule);
-      expect(resp).toEqual(DF.namedNode("p"));
+      expect(resp).toEqual(DF.namedNode('p'));
     });
 
-    it("should return the term given a rule not supported", () => {
-      const term = DF.namedNode("c");
+    it('should return the term given a rule not supported', () => {
+      const term = DF.namedNode('c');
       const rule: IRule = {
-        premise: DF.namedNode("p"),
-        inference: DF.namedNode("i"),
-        conclusion: DF.namedNode("c"),
+        premise: DF.namedNode('p'),
+        inference: DF.namedNode('i'),
+        conclusion: DF.namedNode('c'),
       };
       const resp = QuadTransformMultipleVocabulary.transformTerm(term, rule);
       expect(resp).toEqual(term);
     });
 
-    it("should return the term given an unrelated term", () => {
-      const term = DF.namedNode("z");
+    it('should return the term given an unrelated term', () => {
+      const term = DF.namedNode('z');
       const rule: IRule = {
-        premise: DF.namedNode("p"),
+        premise: DF.namedNode('p'),
         inference: QuadTransformMultipleVocabulary.SAME_AS,
-        conclusion: DF.namedNode("c"),
+        conclusion: DF.namedNode('c'),
       };
       const resp = QuadTransformMultipleVocabulary.transformTerm(term, rule);
       expect(resp).toEqual(term);
@@ -46,21 +48,21 @@ describe(QuadTransformMultipleVocabulary.name, () => {
   });
 
   describe(QuadTransformMultipleVocabulary.transformQuad.name, () => {
-    it("should transform the quad given a fully matching rule", () => {
+    it('should transform the quad given a fully matching rule', () => {
       const quad: RDF.BaseQuad = DF.quad(
-        DF.namedNode("c"),
-        DF.namedNode("c"),
-        DF.namedNode("c")
+        DF.namedNode('c'),
+        DF.namedNode('c'),
+        DF.namedNode('c'),
       );
       const expectedQuad = DF.quad(
-        DF.namedNode("p"),
-        DF.namedNode("p"),
-        DF.namedNode("p")
+        DF.namedNode('p'),
+        DF.namedNode('p'),
+        DF.namedNode('p'),
       );
       const rule: IRule = {
-        premise: DF.namedNode("p"),
+        premise: DF.namedNode('p'),
         inference: QuadTransformMultipleVocabulary.SAME_AS,
-        conclusion: DF.namedNode("c"),
+        conclusion: DF.namedNode('c'),
       };
 
       const resp = QuadTransformMultipleVocabulary.transformQuad(quad, rule);
@@ -68,21 +70,21 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       expect(resp).toEqual(expectedQuad);
     });
 
-    it("should transform the quad given a partially matching rule", () => {
+    it('should transform the quad given a partially matching rule', () => {
       const quad: RDF.BaseQuad = DF.quad(
-        DF.namedNode("z"),
-        DF.namedNode("p"),
-        DF.namedNode("c")
+        DF.namedNode('z'),
+        DF.namedNode('p'),
+        DF.namedNode('c'),
       );
       const expectedQuad = DF.quad(
-        DF.namedNode("z"),
-        DF.namedNode("p"),
-        DF.namedNode("p")
+        DF.namedNode('z'),
+        DF.namedNode('p'),
+        DF.namedNode('p'),
       );
       const rule: IRule = {
-        premise: DF.namedNode("p"),
+        premise: DF.namedNode('p'),
         inference: QuadTransformMultipleVocabulary.SAME_AS,
-        conclusion: DF.namedNode("c"),
+        conclusion: DF.namedNode('c'),
       };
 
       const resp = QuadTransformMultipleVocabulary.transformQuad(quad, rule);
@@ -90,16 +92,16 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       expect(resp).toEqual(expectedQuad);
     });
 
-    it("should transform the quad given a non-matching rule", () => {
+    it('should transform the quad given a non-matching rule', () => {
       const quad: RDF.BaseQuad = DF.quad(
-        DF.namedNode("z"),
-        DF.namedNode("p"),
-        DF.namedNode("q")
+        DF.namedNode('z'),
+        DF.namedNode('p'),
+        DF.namedNode('q'),
       );
       const rule: IRule = {
-        premise: DF.namedNode("p"),
+        premise: DF.namedNode('p'),
         inference: QuadTransformMultipleVocabulary.SAME_AS,
-        conclusion: DF.namedNode("c"),
+        conclusion: DF.namedNode('c'),
       };
 
       const resp = QuadTransformMultipleVocabulary.transformQuad(quad, rule);
@@ -109,171 +111,170 @@ describe(QuadTransformMultipleVocabulary.name, () => {
   });
 
   describe(QuadTransformMultipleVocabulary.transfromQuadFromRuleSet.name, () => {
-      it("should produce a quads given multiple matching rules", () => {
-        const quad: RDF.BaseQuad = DF.quad(
-          DF.namedNode("c1"),
-          DF.namedNode("c2"),
-          DF.namedNode("c3")
-        );
-        const expectedQuad = DF.quad(
-          DF.namedNode("p1"),
-          DF.namedNode("p2"),
-          DF.namedNode("p3")
-        );
+    it('should produce a quads given multiple matching rules', () => {
+      const quad: RDF.BaseQuad = DF.quad(
+        DF.namedNode('c1'),
+        DF.namedNode('c2'),
+        DF.namedNode('c3'),
+      );
+      const expectedQuad = DF.quad(
+        DF.namedNode('p1'),
+        DF.namedNode('p2'),
+        DF.namedNode('p3'),
+      );
 
-        const rules: RuleSet = [
-          {
-            premise: DF.namedNode("p1"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c1"),
-          },
-          {
-            premise: DF.namedNode("p2"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c2"),
-          },
-          {
-            premise: DF.namedNode("p3"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c3"),
-          },
-        ];
+      const rules: RuleSet = [
+        {
+          premise: DF.namedNode('p1'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c1'),
+        },
+        {
+          premise: DF.namedNode('p2'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c2'),
+        },
+        {
+          premise: DF.namedNode('p3'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c3'),
+        },
+      ];
 
-        const resp = QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(
-          quad,
-          rules
-        );
+      const resp = QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(
+        quad,
+        rules,
+      );
 
-        expect(resp).toEqual(expectedQuad);
-      });
+      expect(resp).toEqual(expectedQuad);
+    });
 
-      it("should produce a quads given one matching rules", () => {
-        const quad: RDF.BaseQuad = DF.quad(
-          DF.namedNode("c1"),
-          DF.namedNode("z"),
-          DF.namedNode("q")
-        );
-        const expectedQuad = DF.quad(
-          DF.namedNode("p1"),
-          DF.namedNode("z"),
-          DF.namedNode("q")
-        );
+    it('should produce a quads given one matching rules', () => {
+      const quad: RDF.BaseQuad = DF.quad(
+        DF.namedNode('c1'),
+        DF.namedNode('z'),
+        DF.namedNode('q'),
+      );
+      const expectedQuad = DF.quad(
+        DF.namedNode('p1'),
+        DF.namedNode('z'),
+        DF.namedNode('q'),
+      );
 
-        const rules: RuleSet = [
-          {
-            premise: DF.namedNode("p1"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c1"),
-          },
-          {
-            premise: DF.namedNode("p2"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c2"),
-          },
-          {
-            premise: DF.namedNode("p3"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c3"),
-          },
-        ];
+      const rules: RuleSet = [
+        {
+          premise: DF.namedNode('p1'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c1'),
+        },
+        {
+          premise: DF.namedNode('p2'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c2'),
+        },
+        {
+          premise: DF.namedNode('p3'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c3'),
+        },
+      ];
 
-        const resp = QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(
-          quad,
-          rules
-        );
+      const resp = QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(
+        quad,
+        rules,
+      );
 
-        expect(resp).toEqual(expectedQuad);
-      });
+      expect(resp).toEqual(expectedQuad);
+    });
 
-      it("should produce a quads given no matching rules", () => {
-        const quad: RDF.BaseQuad = DF.quad(
-          DF.namedNode("w"),
-          DF.namedNode("z"),
-          DF.namedNode("q")
-        );
-        const expectedQuad = DF.quad(
-          DF.namedNode("w"),
-          DF.namedNode("z"),
-          DF.namedNode("q")
-        );
+    it('should produce a quads given no matching rules', () => {
+      const quad: RDF.BaseQuad = DF.quad(
+        DF.namedNode('w'),
+        DF.namedNode('z'),
+        DF.namedNode('q'),
+      );
+      const expectedQuad = DF.quad(
+        DF.namedNode('w'),
+        DF.namedNode('z'),
+        DF.namedNode('q'),
+      );
 
-        const rules: RuleSet = [
-          {
-            premise: DF.namedNode("p1"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c1"),
-          },
-          {
-            premise: DF.namedNode("p2"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c2"),
-          },
-          {
-            premise: DF.namedNode("p3"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c3"),
-          },
-        ];
+      const rules: RuleSet = [
+        {
+          premise: DF.namedNode('p1'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c1'),
+        },
+        {
+          premise: DF.namedNode('p2'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c2'),
+        },
+        {
+          premise: DF.namedNode('p3'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c3'),
+        },
+      ];
 
-        const resp = QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(
-          quad,
-          rules
-        );
+      const resp = QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(
+        quad,
+        rules,
+      );
 
-        expect(resp).toEqual(expectedQuad);
-      });
+      expect(resp).toEqual(expectedQuad);
+    });
 
-      it("should apply the first rule given a transitive rules", () => {
-        const quad: RDF.BaseQuad = DF.quad(
-          DF.namedNode("c1"),
-          DF.namedNode("c2"),
-          DF.namedNode("c3")
-        );
-        const expectedQuad = DF.quad(
-          DF.namedNode("p1"),
-          DF.namedNode("c1"),
-          DF.namedNode("p3")
-        );
+    it('should apply the first rule given a transitive rules', () => {
+      const quad: RDF.BaseQuad = DF.quad(
+        DF.namedNode('c1'),
+        DF.namedNode('c2'),
+        DF.namedNode('c3'),
+      );
+      const expectedQuad = DF.quad(
+        DF.namedNode('p1'),
+        DF.namedNode('c1'),
+        DF.namedNode('p3'),
+      );
 
-        const rules: RuleSet = [
-          {
-            premise: DF.namedNode("p1"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c1"),
-          },
-          {
-            premise: DF.namedNode("c1"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c2"),
-          },
-          {
-            premise: DF.namedNode("p3"),
-            inference: QuadTransformMultipleVocabulary.SAME_AS,
-            conclusion: DF.namedNode("c3"),
-          },
-        ];
+      const rules: RuleSet = [
+        {
+          premise: DF.namedNode('p1'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c1'),
+        },
+        {
+          premise: DF.namedNode('c1'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c2'),
+        },
+        {
+          premise: DF.namedNode('p3'),
+          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          conclusion: DF.namedNode('c3'),
+        },
+      ];
 
-        const resp = QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(
-          quad,
-          rules
-        );
+      const resp = QuadTransformMultipleVocabulary.transfromQuadFromRuleSet(
+        quad,
+        rules,
+      );
 
-        expect(resp).toEqual(expectedQuad);
-      });
-    }
-  );
+      expect(resp).toEqual(expectedQuad);
+    });
+  });
 
-  describe("getRuleSet", () => {
-    it("should get no rule given a transformer with no rule set", () => {
+  describe('getRuleSet', () => {
+    it('should get no rule given a transformer with no rule set', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [],
       };
       const quad = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("http://example.com/api/pods/4567/"),
+          DF.namedNode('http://example.com/api/pods/4567/'),
           DF.blankNode(),
-          DF.blankNode()
+          DF.blankNode(),
         )
       );
       const transformer = new QuadTransformMultipleVocabulary(args);
@@ -281,76 +282,76 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       expect(ruleSet).toBeUndefined();
     });
 
-    it("should get rules given a transformer with rules and a matching subject", () => {
+    it('should get rules given a transformer with rules and a matching subject', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c12"),
+              conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
         ],
       };
       const quad = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
           DF.blankNode(),
-          DF.blankNode()
+          DF.blankNode(),
         )
       );
-      const expectedIndex = QuadTransformMultipleVocabulary.stringToNumberHash("http://example.com/api/pods/4567/") % args.rules.length;
-      const expectedRuleSet = args.rules[expectedIndex]
+      const expectedIndex = QuadTransformMultipleVocabulary.stringToNumberHash('http://example.com/api/pods/4567/') % args.rules.length;
+      const expectedRuleSet = args.rules[expectedIndex];
       const transformer = new QuadTransformMultipleVocabulary(args);
       const ruleSet = transformer.getRuleSet(quad);
       expect(ruleSet).toEqual(expectedRuleSet);
     });
 
-    it("should get rules given a transformer with rules and a matching object", () => {
+    it('should get rules given a transformer with rules and a matching object', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c12"),
+              conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
         ],
@@ -359,42 +360,42 @@ describe(QuadTransformMultipleVocabulary.name, () => {
         DF.quad(
           DF.blankNode(),
           DF.blankNode(),
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
         )
       );
-      const expectedIndex = QuadTransformMultipleVocabulary.stringToNumberHash("http://example.com/api/pods/4567/") % args.rules.length;
-      const expectedRuleSet = args.rules[expectedIndex]
+      const expectedIndex = QuadTransformMultipleVocabulary.stringToNumberHash('http://example.com/api/pods/4567/') % args.rules.length;
+      const expectedRuleSet = args.rules[expectedIndex];
       const transformer = new QuadTransformMultipleVocabulary(args);
       const ruleSet = transformer.getRuleSet(quad);
       expect(ruleSet).toEqual(expectedRuleSet);
     });
 
-    it("should not get rules given a transformer with rules and a matching predicate", () => {
+    it('should not get rules given a transformer with rules and a matching predicate', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c12"),
+              conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
         ],
@@ -402,7 +403,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       const quad = <RDF.Quad>(
         DF.quad(
           DF.blankNode(),
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
           DF.blankNode(),
         )
       );
@@ -413,67 +414,66 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
   });
 
-  describe("constructor", ()=>{
-    it("should throw given an inference that is not supported", ()=>{
+  describe('constructor', () => {
+    it('should throw given an inference that is not supported', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c12"),
+              conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: DF.blankNode(),
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
         ],
       };
-      expect(()=>new QuadTransformMultipleVocabulary(args)).toThrow();
-
+      expect(() => new QuadTransformMultipleVocabulary(args)).toThrow();
     });
 
-    it("should construct", ()=>{
+    it('should construct', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c12"),
+              conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
         ],
@@ -485,33 +485,33 @@ describe(QuadTransformMultipleVocabulary.name, () => {
     });
   });
 
-  describe("transform", ()=>{
-    it("should return the same quad given no rule set is associated with the dataset of the quad", ()=>{
+  describe('transform', () => {
+    it('should return the same quad given no rule set is associated with the dataset of the quad', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c12"),
+              conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
         ],
@@ -519,7 +519,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       const quad = <RDF.Quad>(
         DF.quad(
           DF.blankNode(),
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
           DF.blankNode(),
         )
       );
@@ -528,44 +528,44 @@ describe(QuadTransformMultipleVocabulary.name, () => {
 
       const resp = transformer.transform(quad);
 
-      expect(resp).toStrictEqual([quad]);
+      expect(resp).toStrictEqual([ quad ]);
     });
 
-    it("should return the same quad given a rule not related to the quad", ()=>{
+    it('should return the same quad given a rule not related to the quad', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c12"),
+              conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
         ],
       };
       const quad = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
           DF.blankNode(),
-          DF.namedNode("bar"),
+          DF.namedNode('bar'),
         )
       );
 
@@ -573,52 +573,52 @@ describe(QuadTransformMultipleVocabulary.name, () => {
 
       const resp = transformer.transform(quad);
 
-      expect(resp).toStrictEqual([quad]);
+      expect(resp).toStrictEqual([ quad ]);
     });
 
-    it("should return the transformed quad given a rule related to the quad", ()=>{
+    it('should return the transformed quad given a rule related to the quad', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("predicate"),
+              conclusion: DF.namedNode('predicate'),
             },
           ],
         ],
       };
       const quad = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
-          DF.namedNode("predicate"),
-          DF.namedNode("bar"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
+          DF.namedNode('predicate'),
+          DF.namedNode('bar'),
         )
       );
 
       const expectedQuad = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
-          DF.namedNode("p12"),
-          DF.namedNode("bar"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
+          DF.namedNode('p12'),
+          DF.namedNode('bar'),
         )
       );
 
@@ -626,52 +626,52 @@ describe(QuadTransformMultipleVocabulary.name, () => {
 
       const resp = transformer.transform(quad);
 
-      expect(resp).toStrictEqual([expectedQuad]);
+      expect(resp).toStrictEqual([ expectedQuad ]);
     });
 
-    it("should return the transformed quad given a rule related to the quad given a second pass", ()=>{
+    it('should return the transformed quad given a rule related to the quad given a second pass', () => {
       const args: IQuadTransformMultipleVocabularyArgs = {
-        datasetPatterns: "^(.*\\/pods\\/[0-9]+\\/)",
+        datasetPatterns: '^(.*\\/pods\\/[0-9]+\\/)',
         rules: [
           [
             {
-              premise: DF.namedNode("p21"),
+              premise: DF.namedNode('p21'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c21"),
+              conclusion: DF.namedNode('c21'),
             },
             {
-              premise: DF.namedNode("p22"),
+              premise: DF.namedNode('p22'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c22"),
+              conclusion: DF.namedNode('c22'),
             },
           ],
           [
             {
-              premise: DF.namedNode("p11"),
+              premise: DF.namedNode('p11'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("c11"),
+              conclusion: DF.namedNode('c11'),
             },
             {
-              premise: DF.namedNode("p12"),
+              premise: DF.namedNode('p12'),
               inference: QuadTransformMultipleVocabulary.SAME_AS,
-              conclusion: DF.namedNode("predicate"),
+              conclusion: DF.namedNode('predicate'),
             },
           ],
         ],
       };
       const quad = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
-          DF.namedNode("predicate"),
-          DF.namedNode("bar"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
+          DF.namedNode('predicate'),
+          DF.namedNode('bar'),
         )
       );
 
       const expectedQuad = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("http://example.com/api/pods/4567/barfoo"),
-          DF.namedNode("p12"),
-          DF.namedNode("bar"),
+          DF.namedNode('http://example.com/api/pods/4567/barfoo'),
+          DF.namedNode('p12'),
+          DF.namedNode('bar'),
         )
       );
 
@@ -679,26 +679,26 @@ describe(QuadTransformMultipleVocabulary.name, () => {
 
       const resp = transformer.transform(quad);
 
-      expect(resp).toStrictEqual([expectedQuad]);
+      expect(resp).toStrictEqual([ expectedQuad ]);
 
       const quad2 = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("c11"),
-          DF.namedNode("predicate"),
-          DF.namedNode("http://example.com/api/pods/4567/deux"),
+          DF.namedNode('c11'),
+          DF.namedNode('predicate'),
+          DF.namedNode('http://example.com/api/pods/4567/deux'),
         )
       );
 
       const expectedQuad2 = <RDF.Quad>(
         DF.quad(
-          DF.namedNode("p11"),
-          DF.namedNode("p12"),
-          DF.namedNode("http://example.com/api/pods/4567/deux"),
+          DF.namedNode('p11'),
+          DF.namedNode('p12'),
+          DF.namedNode('http://example.com/api/pods/4567/deux'),
         )
       );
       const resp2 = transformer.transform(quad2);
 
-      expect(resp2).toStrictEqual([expectedQuad2]);
+      expect(resp2).toStrictEqual([ expectedQuad2 ]);
     });
   });
 });
