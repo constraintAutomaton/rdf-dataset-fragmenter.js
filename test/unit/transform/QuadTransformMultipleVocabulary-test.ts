@@ -3,9 +3,11 @@ import {
   QuadTransformMultipleVocabulary,
   IQuadTransformMultipleVocabularyArgs,
   RuleSet,
-  DF
 } from "../../../lib/transform/QuadTransformMultipleVocabulary";
 import * as RDF from "@rdfjs/types";
+import { DataFactory } from "rdf-data-factory";
+
+const DF = new DataFactory<RDF.BaseQuad>();
 
 describe(QuadTransformMultipleVocabulary.name, () => {
   describe(QuadTransformMultipleVocabulary.transformTerm.name, () => {

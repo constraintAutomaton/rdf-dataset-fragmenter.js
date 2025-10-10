@@ -7,7 +7,7 @@ import {
 } from "../transform/QuadTransformMultipleVocabulary";
 import { DataFactory } from "rdf-data-factory";
 
-export const DF = new DataFactory<RDF.Quad>();
+const DF = new DataFactory<RDF.Quad>();
 
 export class FragmentationMultipleVocabularies extends FragmentationStrategyStreamAdapter {
   public readonly transformer: QuadTransformMultipleVocabulary;

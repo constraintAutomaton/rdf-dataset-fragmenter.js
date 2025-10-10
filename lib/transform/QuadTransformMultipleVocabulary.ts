@@ -2,7 +2,7 @@ import type * as RDF from "@rdfjs/types";
 import type { IQuadTransformer } from "./IQuadTransformer";
 import { DataFactory } from "rdf-data-factory";
 
-export const DF = new DataFactory<RDF.BaseQuad>();
+const DF = new DataFactory<RDF.BaseQuad>();
 /**
  * A quad transformer that generate quads into another vocabulary by data sources
  */
@@ -24,6 +24,9 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
             `${rule.inference.value} is not a suported inference`
           );
         }
+        rule.premise = DF.fromTerm(rule.premise);
+        rule.inference = DF.fromTerm(rule.inference);
+        rule.conclusion = DF.fromTerm(rule.conclusion);
       }
     }
   }

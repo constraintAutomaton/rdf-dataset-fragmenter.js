@@ -1,12 +1,15 @@
 import {
   FragmentationMultipleVocabularies,
-  DF,
 } from "../../../lib/strategy/FragmentationMultipleVocabularies";
 import {
   QuadTransformMultipleVocabulary,
   RuleSet,
 } from "../../../lib/transform/QuadTransformMultipleVocabulary";
+import { DataFactory } from "rdf-data-factory";
+import type * as RDF from "@rdfjs/types";
 import "jest-rdf";
+
+const DF = new DataFactory<RDF.Quad>();
 
 const streamifyArray = require("streamify-array");
 
