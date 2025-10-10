@@ -192,7 +192,7 @@ export interface IQuadTransformMultipleVocabularyArgs {
   /**
    * The sets of rules that change the vocabulary of the dataset
    */
-  rules: RuleSet[]|IRuleArg[][];
+  rules: IRuleArg[][];
 }
 
 export type RuleSet = IRule[];
