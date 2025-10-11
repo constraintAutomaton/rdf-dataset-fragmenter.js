@@ -1,7 +1,7 @@
-import type * as RDF from '@rdfjs/types';
-import { DataFactory } from 'rdf-data-factory';
-import type { IQuadTransformer } from './IQuadTransformer';
-import * as fs from 'fs';
+import type * as RDF from "@rdfjs/types";
+import { DataFactory } from "rdf-data-factory";
+import type { IQuadTransformer } from "./IQuadTransformer";
+import * as fs from "fs";
 
 const DF = new DataFactory<RDF.BaseQuad>();
 /**
@@ -12,24 +12,36 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
   public readonly rules: RuleSet[];
   public readonly dataSetRuleAssoc: Map<string, RuleSet> = new Map();
   public static readonly SAME_AS = DF.namedNode(
-    'http://www.w3.org/2002/07/owl#sameAs',
+    "http://www.w3.org/2002/07/owl#sameAs"
   );
 
   public constructor(args: IQuadTransformMultipleVocabulariesOptions) {
-    this.datasetPatterns = new RegExp(args.datasetPatterns, 'u');
-    let rules:IRuleArg[][] = [];
-    if(typeof args.rules === "string"){
-      const data = fs.readFileSync(args.rules, 'utf-8');
+    this.datasetPatterns = new RegExp(args.datasetPatterns, "u");
+    let rules: IRuleArg[][] = [];
+    if (typeof args.rules === "string") {
+      const data = fs.readFileSync(args.rules, "utf-8");
       rules = JSON.parse(data)["rules"];
-    }else{
+    } else {
       rules = args.rules;
     }
     for (const ruleSet of rules) {
       for (const rule of ruleSet) {
-        if (QuadTransformMultipleVocabulary.SAME_AS.value !== rule.inference.value) {
+        if (
+          QuadTransformMultipleVocabulary.SAME_AS.value !== rule.inference.value
+        ) {
           throw new Error(
-            `${rule.inference.value} is not a suported inference`,
+            `${rule.inference.value} is not a suported inference`
           );
+        }
+        // all of this is an hack because we need to provide a JSON to create a RDF.Term
+        if (rule.premise.termType === "Literal") {
+          rule.premise = DF.literal(rule.premise.value);
+        }
+        if (rule.inference.termType === "Literal") {
+          rule.inference = DF.literal(rule.inference.value);
+        }
+        if (rule.conclusion.termType === "Literal") {
+          rule.conclusion = DF.literal(rule.conclusion.value);
         }
         rule.premise = DF.fromTerm(<RDF.Term>rule.premise);
         rule.inference = DF.fromTerm(<RDF.Term>rule.inference);
@@ -42,7 +54,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
   public transform(quad: RDF.Quad): RDF.Quad[] {
     const ruleSet = this.getRuleSet(quad);
     if (ruleSet === undefined) {
-      return [ quad ];
+      return [quad];
     }
     // We cast because nothing stop a user to produce base quad instead of quads
     return [
@@ -114,7 +126,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
    */
   public static transfromQuadFromRuleSet(
     quad: RDF.BaseQuad,
-    ruleSet: RuleSet,
+    ruleSet: RuleSet
   ): RDF.BaseQuad {
     const resp: RDF.BaseQuad[] = [];
     for (const rule of ruleSet) {
@@ -136,7 +148,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
    */
   private static mergeQuad(
     quads: RDF.BaseQuad[],
-    originalQuad: RDF.BaseQuad,
+    originalQuad: RDF.BaseQuad
   ): RDF.BaseQuad {
     let subject = originalQuad.subject;
     let predicate = originalQuad.predicate;
@@ -199,7 +211,7 @@ export interface IQuadTransformMultipleVocabulariesOptions {
   /**
    * The sets of rules that change the vocabulary of the dataset
    */
-  rules: IRuleArg[][]|string;
+  rules: RuleSet[] | string;
 }
 
 export type RuleSet = IRule[];
@@ -211,12 +223,12 @@ export interface IRule {
 }
 
 export interface ITerm {
-  value:string;
-  termType:string;
+  value: string;
+  termType: string;
 }
 
-export interface IRuleArg{
+export interface IRuleArg {
   premise: ITerm;
-  inference:ITerm;
-  conclusion:ITerm
+  inference: ITerm;
+  conclusion: ITerm;
 }
