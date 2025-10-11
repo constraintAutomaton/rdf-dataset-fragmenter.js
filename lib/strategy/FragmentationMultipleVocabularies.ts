@@ -84,7 +84,7 @@ export class FragmentationMultipleVocabularies extends FragmentationStrategyStre
 
     const resp: RDF.Quad[] = [
       DF.quad(documentIri, FragmentationMultipleVocabularies.RDF_TYPE_NODE, FragmentationMultipleVocabularies.RULE_SET_CLASS),
-      DF.quad(documentIri, FragmentationMultipleVocabularies.RULE_SET_SUBWEB, DF.literal(`"${dataset}{+path}"`)),
+      DF.quad(documentIri, FragmentationMultipleVocabularies.RULE_SET_SUBWEB, DF.literal(`${dataset}{+path}`)),
     ];
 
     for (const rule of rules) {

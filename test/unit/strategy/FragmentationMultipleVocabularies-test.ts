@@ -68,7 +68,7 @@ describe(FragmentationMultipleVocabularies.name, () => {
         DF.quad(
           documentIri,
           FragmentationMultipleVocabularies.RULE_SET_SUBWEB,
-          DF.literal(`"${A_DATASET}{+path}"`),
+          DF.literal(`${A_DATASET}{+path}`),
         ),
 
         DF.quad(
