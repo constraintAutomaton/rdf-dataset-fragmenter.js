@@ -2,6 +2,7 @@ import type * as RDF from '@rdfjs/types';
 import { DataFactory } from 'rdf-data-factory';
 import type { IQuadSink } from '../io/IQuadSink';
 import type {
+  IQuadTransformMultipleVocabulariesOptions,
   RuleSet,
 } from '../transform/QuadTransformMultipleVocabulary';
 import {
@@ -104,15 +105,8 @@ export class FragmentationMultipleVocabularies extends FragmentationStrategyStre
 /**
  * The argument of the component
  */
-export interface IFragmentationMultipleVocabulariesArgs {
-  /**
-   * Regex identifying a dataset
-   */
-  datasetPatterns: string;
-  /**
-   * The sets of rules that change the vocabulary of the dataset
-   */
-  rules: RuleSet[];
+export interface IFragmentationMultipleVocabulariesArgs extends IQuadTransformMultipleVocabulariesOptions{
+
   /**
    * Relative path of the rule set
    */

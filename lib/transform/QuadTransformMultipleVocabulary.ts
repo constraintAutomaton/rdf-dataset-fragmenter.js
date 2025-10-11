@@ -129,9 +129,11 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
     ruleSet: RuleSet
   ): RDF.BaseQuad {
     const resp: RDF.BaseQuad[] = [];
+    let currentQuad = quad;
     for (const rule of ruleSet) {
-      const newQuad = this.transformQuad(quad, rule);
+      const newQuad = this.transformQuad(currentQuad, rule);
       resp.push(newQuad);
+      currentQuad = newQuad;
     }
     return QuadTransformMultipleVocabulary.mergeQuad(resp, quad);
   }
