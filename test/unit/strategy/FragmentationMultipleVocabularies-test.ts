@@ -54,7 +54,7 @@ describe(FragmentationMultipleVocabularies.name, () => {
           conclusion: DF.namedNode('c3'),
         },
       ];
-      const documentIri = DF.namedNode(`${A_DATASET}/${A_RULE_PATH}`);
+      const documentIri = DF.namedNode(`${A_DATASET}${A_RULE_PATH}`);
       const firstRuleBN = DF.blankNode();
       const secondRuleBN = DF.blankNode();
       const thirdRuleBN = DF.blankNode();
