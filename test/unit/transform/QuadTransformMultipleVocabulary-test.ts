@@ -6,6 +6,7 @@ import type {
   RuleSet,
 } from '../../../lib/transform/QuadTransformMultipleVocabulary';
 import {
+  Operator,
   QuadTransformMultipleVocabulary,
 } from '../../../lib/transform/QuadTransformMultipleVocabulary';
 
@@ -17,7 +18,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       const term = DF.namedNode('c');
       const rule: IRule = {
         premise: DF.namedNode('p'),
-        inference: QuadTransformMultipleVocabulary.SAME_AS,
+        inference: DF.namedNode(Operator.SAME_AS),
         conclusion: DF.namedNode('c'),
       };
       const resp = QuadTransformMultipleVocabulary.transformTerm(term, rule);
@@ -39,7 +40,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       const term = DF.namedNode('z');
       const rule: IRule = {
         premise: DF.namedNode('p'),
-        inference: QuadTransformMultipleVocabulary.SAME_AS,
+        inference: DF.namedNode(Operator.SAME_AS),
         conclusion: DF.namedNode('c'),
       };
       const resp = QuadTransformMultipleVocabulary.transformTerm(term, rule);
@@ -61,7 +62,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       );
       const rule: IRule = {
         premise: DF.namedNode('p'),
-        inference: QuadTransformMultipleVocabulary.SAME_AS,
+        inference: DF.namedNode(Operator.SAME_AS),
         conclusion: DF.namedNode('c'),
       };
 
@@ -83,7 +84,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       );
       const rule: IRule = {
         premise: DF.namedNode('p'),
-        inference: QuadTransformMultipleVocabulary.SAME_AS,
+        inference: DF.namedNode(Operator.SAME_AS),
         conclusion: DF.namedNode('c'),
       };
 
@@ -100,7 +101,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       );
       const rule: IRule = {
         premise: DF.namedNode('p'),
-        inference: QuadTransformMultipleVocabulary.SAME_AS,
+        inference: DF.namedNode(Operator.SAME_AS),
         conclusion: DF.namedNode('c'),
       };
 
@@ -126,17 +127,17 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       const rules: RuleSet = [
         {
           premise: DF.namedNode('p1'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c1'),
         },
         {
           premise: DF.namedNode('p2'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c2'),
         },
         {
           premise: DF.namedNode('p3'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c3'),
         },
       ];
@@ -164,17 +165,17 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       const rules: RuleSet = [
         {
           premise: DF.namedNode('p1'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c1'),
         },
         {
           premise: DF.namedNode('p2'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c2'),
         },
         {
           premise: DF.namedNode('p3'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c3'),
         },
       ];
@@ -202,17 +203,17 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       const rules: RuleSet = [
         {
           premise: DF.namedNode('p1'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c1'),
         },
         {
           premise: DF.namedNode('p2'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c2'),
         },
         {
           premise: DF.namedNode('p3'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c3'),
         },
       ];
@@ -240,17 +241,17 @@ describe(QuadTransformMultipleVocabulary.name, () => {
       const rules: RuleSet = [
         {
           premise: DF.namedNode('p1'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c1'),
         },
         {
           premise: DF.namedNode('c1'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c2'),
         },
         {
           premise: DF.namedNode('p3'),
-          inference: QuadTransformMultipleVocabulary.SAME_AS,
+          inference: DF.namedNode(Operator.SAME_AS),
           conclusion: DF.namedNode('c3'),
         },
       ];
@@ -289,24 +290,24 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
               premise: DF.namedNode('p21'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c21'),
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c22'),
             },
           ],
@@ -333,24 +334,24 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
               premise: DF.namedNode('p21'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c21'),
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c22'),
             },
           ],
@@ -377,24 +378,24 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
               premise: DF.namedNode('p21'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c21'),
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c22'),
             },
           ],
@@ -422,12 +423,12 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c12'),
             },
           ],
@@ -439,7 +440,7 @@ describe(QuadTransformMultipleVocabulary.name, () => {
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c22'),
             },
           ],
@@ -455,24 +456,24 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
               premise: DF.namedNode('p21'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c21'),
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c22'),
             },
           ],
@@ -493,24 +494,24 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
               premise: DF.namedNode('p21'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c21'),
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c22'),
             },
           ],
@@ -538,24 +539,24 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c12'),
             },
           ],
           [
             {
               premise: DF.namedNode('p21'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c21'),
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c22'),
             },
           ],
@@ -583,24 +584,24 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p21'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c21'),
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c22'),
             },
           ],
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('predicate'),
             },
           ],
@@ -636,24 +637,24 @@ describe(QuadTransformMultipleVocabulary.name, () => {
           [
             {
               premise: DF.namedNode('p21'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c21'),
             },
             {
               premise: DF.namedNode('p22'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.EQUIVALENT_CLASS),
               conclusion: DF.namedNode('c22'),
             },
           ],
           [
             {
               premise: DF.namedNode('p11'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.SAME_AS),
               conclusion: DF.namedNode('c11'),
             },
             {
               premise: DF.namedNode('p12'),
-              inference: QuadTransformMultipleVocabulary.SAME_AS,
+              inference: DF.namedNode(Operator.NARROW_MATCH),
               conclusion: DF.namedNode('predicate'),
             },
           ],

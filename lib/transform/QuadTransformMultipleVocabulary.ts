@@ -4,6 +4,19 @@ import type { IQuadTransformer } from "./IQuadTransformer";
 import * as fs from "fs";
 
 const DF = new DataFactory<RDF.BaseQuad>();
+export enum Operator {
+  SAME_AS = "http://www.w3.org/2002/07/owl#sameAs",
+  EQUIVALENT_CLASS = "http://www.w3.org/2002/07/owl#equivalentClass",
+  EQUIVALENT_PROPERTY = "http://www.w3.org/2002/07/owl#equivalentProperty",
+  SUB_CLASS_OF = "http://www.w3.org/2000/01/rdf-schema#subClassOf",
+  SUB_PROPERTY_OF = "http://www.w3.org/2000/01/rdf-schema#subPropertyOf",
+  RELATED_MATCH = "http://www.w3.org/2004/02/skos/core#relatedMatch",
+  CLOSE_MATCH = "http://www.w3.org/2004/02/skos/core#closeMatch",
+  EXACT_MATCH = "http://www.w3.org/2004/02/skos/core#exactMatch",
+  NARROW_MATCH = "http://www.w3.org/2004/02/skos/core#narrowMatch",
+  BROAD_MATCH = "http://www.w3.org/2004/02/skos/core#broadMatch",
+}
+ 
 /**
  * A quad transformer that generate quads into another vocabulary by data sources
  */
@@ -11,9 +24,18 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
   public readonly datasetPatterns: RegExp;
   public readonly rules: RuleSet[];
   public readonly dataSetRuleAssoc: Map<string, RuleSet> = new Map();
-  public static readonly SAME_AS = DF.namedNode(
-    "http://www.w3.org/2002/07/owl#sameAs"
-  );
+  public static readonly RULE_OPERATION_STRING:Set<string> = new Set([
+  Operator.SAME_AS,
+  Operator.EQUIVALENT_CLASS,
+  Operator.EQUIVALENT_PROPERTY,
+  Operator.SUB_CLASS_OF,
+  Operator.SUB_PROPERTY_OF,
+  Operator.RELATED_MATCH,
+  Operator.CLOSE_MATCH,
+  Operator.EXACT_MATCH,
+  Operator.NARROW_MATCH,
+  ]);
+  public static readonly RULE_OPERATOR: Set<RDF.NamedNode> = new Set(Array.from(QuadTransformMultipleVocabulary.RULE_OPERATION_STRING).map((iri)=> DF.namedNode(iri)));
 
   public constructor(args: IQuadTransformMultipleVocabulariesOptions) {
     this.datasetPatterns = new RegExp(args.datasetPatterns, "u");
@@ -27,7 +49,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
     for (const ruleSet of rules) {
       for (const rule of ruleSet) {
         if (
-          QuadTransformMultipleVocabulary.SAME_AS.value !== rule.inference.value
+          !QuadTransformMultipleVocabulary.RULE_OPERATION_STRING.has(rule.inference.value)
         ) {
           throw new Error(
             `${rule.inference.value} is not a suported inference`
@@ -194,7 +216,7 @@ export class QuadTransformMultipleVocabulary implements IQuadTransformer {
   public static transformTerm(term: RDF.Term, rule: IRule): RDF.Term {
     if (
       rule.conclusion.equals(term) &&
-      rule.inference.equals(QuadTransformMultipleVocabulary.SAME_AS)
+      QuadTransformMultipleVocabulary.RULE_OPERATION_STRING.has(rule.inference.value)
     ) {
       return rule.premise;
     }
